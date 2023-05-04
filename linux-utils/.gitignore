@@ -1,0 +1,7 @@
+# current hack to expose files from root instead of dist folder
+*.js
+*.d.ts
+node_modules
+!src/**/*
+!test/**/*
+!.devcontainer/**/*
