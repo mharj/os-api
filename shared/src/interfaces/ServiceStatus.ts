@@ -1,3 +1,5 @@
+import {IErrorLike} from './IErrorLike';
+
 export const serviceStatusList = ['online', 'offline', 'error', 'connecting', 'disconnected'] as const;
 export type ServiceStatusType = (typeof serviceStatusList)[number];
 
@@ -9,7 +11,7 @@ type ServiceStatusBaseObject = {
 type ServiceStatusErrorObject = {
 	status: 'error';
 	message?: string;
-	error: Error;
+	errors: IErrorLike[];
 };
 
 export type ServiceStatusObject = ServiceStatusBaseObject | ServiceStatusErrorObject;
