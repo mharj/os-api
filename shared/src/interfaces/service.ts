@@ -1,11 +1,9 @@
-import {IFunctionRecordV1} from '../types/v1/functionSchema';
+import {INamedService} from './namedService';
+import {IServiceStatus} from './ServiceStatus';
 
-interface IApiServiceV1<Func extends object> {
-	name: string;
-	version: 1;
-	metadata: {
-		functions: IFunctionRecordV1<Func>;
+export type ApiServiceV1 = INamedService &
+	IServiceStatus & {
+		version: 1;
 	};
-}
 
-export type IApiService<Func extends object> = IApiServiceV1<Func>;
+export type IApiService = ApiServiceV1;

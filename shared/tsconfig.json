@@ -7,7 +7,7 @@
 			"DOM",
 		],
 		"rootDir": "./src",
-		"outDir": "./",
+		"outDir": "./dist",
 		"moduleResolution": "node",
 		"sourceRoot": "./src",
 		"types": [
@@ -23,7 +23,6 @@
 		"noImplicitAny": true,
 		"importHelpers": true,
 		"strictNullChecks": true,
-		"suppressImplicitAnyIndexErrors": true,
 		"noUnusedLocals": true,
 	},
 	"include": [
