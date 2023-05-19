@@ -1,41 +1,46 @@
-import {readFileSync, writeFileSync, unlinkSync} from 'fs';
-import {execFileSync} from 'child_process';
+import * as fsPromise from 'fs/promises';
+import {ILinuxSudoOptions, sudoDeleteFile, sudoDeleteFilePromise, sudoReadFile, sudoReadFilePromise, sudoWriteFile, sudoWriteFilePromise} from './sudo';
+import {readFileSync, unlinkSync, writeFileSync} from 'fs';
+export * from './sudo';
 
-export interface LinuxFileOptions {
-	sudo?: boolean;
-	sudoUser?: string | undefined;
+export function writeFile(fileName: string, content: Buffer, options: ILinuxSudoOptions = {sudo: false}) {
+	if (options.sudo) {
+		return sudoWriteFile(fileName, content, options);
+	}
+	return writeFileSync(fileName, content);
 }
 
-export function writeFile(fileName: string, content: Buffer, options: LinuxFileOptions = {sudo: false}) {
-	if (!options.sudo) {
-		return writeFileSync(fileName, content);
+export function readFile(fileName: string, options: ILinuxSudoOptions = {sudo: false}): Buffer {
+	if (options.sudo) {
+		return sudoReadFile(fileName, options);
 	}
-	const [cmd, ...args] = sudoArgs(['tee', fileName], options);
-	execFileSync(cmd, args, {input: content});
+	return readFileSync(fileName);
 }
 
-export function readFile(fileName: string, options: LinuxFileOptions = {sudo: false}): Buffer {
-	if (!options.sudo) {
-		return readFileSync(fileName);
+export function deleteFile(fileName: string, options: ILinuxSudoOptions = {sudo: false}): void {
+	if (options.sudo) {
+		return sudoDeleteFile(fileName, options);
 	}
-	const [cmd, ...args] = sudoArgs(['cat', fileName], options);
-	return execFileSync(cmd, args);
+	return unlinkSync(fileName);
 }
 
-export function deleteFile(fileName: string, options: LinuxFileOptions = {sudo: false}): void {
-	if (!options.sudo) {
-		return unlinkSync(fileName);
+export async function writeFilePromise(fileName: string, content: Buffer, options: ILinuxSudoOptions = {sudo: false}): Promise<void> {
+	if (options.sudo) {
+		return sudoWriteFilePromise(fileName, content, options);
 	}
-	const [cmd, ...args] = sudoArgs(['rm', '-f', fileName], options);
-	execFileSync(cmd, args);
+	return fsPromise.writeFile(fileName, content);
 }
 
-function sudoArgs(args: string[], options: LinuxFileOptions) {
-	if (process.platform === 'win32') {
-		throw new Error('sudo not supported on Windows');
+export function readFilePromise(fileName: string, options: ILinuxSudoOptions = {sudo: false}): Promise<Buffer> {
+	if (options.sudo) {
+		return sudoReadFilePromise(fileName, options);
 	}
-	if (options.sudoUser) {
-		return ['sudo', '-n', '-U', options.sudoUser, ...args];
+	return fsPromise.readFile(fileName);
+}
+
+export async function deleteFilePromise(fileName: string, options: ILinuxSudoOptions = {sudo: false}): Promise<void> {
+	if (options.sudo) {
+		return sudoDeleteFilePromise(fileName, options);
 	}
-	return ['sudo', '-n', ...args];
+	return fsPromise.unlink(fileName);
 }
