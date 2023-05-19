@@ -1,26 +1,11 @@
-import {execFile, execFileSync} from 'child_process';
+import {execFilePromise} from './execFilePromise';
+import {execFileSync} from 'child_process';
 import {ILoggerLike} from '@avanio/logger-like';
 
 let sudoFileLogger: ILoggerLike | undefined;
 
 export function setSudoFileLogger(logger: ILoggerLike) {
 	sudoFileLogger = logger;
-}
-
-function execFilePromise(cmd: string, args: string[], input?: Buffer): Promise<Buffer> {
-	return new Promise((resolve, reject) => {
-		const child = execFile(cmd, args, (error, stdout) => {
-			if (error) {
-				reject(error);
-			} else {
-				resolve(Buffer.from(stdout));
-			}
-		});
-		if (input) {
-			child.stdin?.write(input);
-		}
-		child.stdin?.end();
-	});
 }
 
 export interface ILinuxSudoOptions {

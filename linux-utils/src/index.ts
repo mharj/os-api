@@ -2,6 +2,7 @@ import * as fsPromise from 'fs/promises';
 import {ILinuxSudoOptions, sudoDeleteFile, sudoDeleteFilePromise, sudoReadFile, sudoReadFilePromise, sudoWriteFile, sudoWriteFilePromise} from './sudo';
 import {readFileSync, unlinkSync, writeFileSync} from 'fs';
 export * from './sudo';
+export * from './execFilePromise';
 
 /**
  * Write a file to disk, optionally using sudo
