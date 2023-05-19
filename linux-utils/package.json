@@ -1,11 +1,12 @@
 {
   "name": "@avanio/os-api-linux-utils",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
+    "prepublishOnly": "npm run build",
     "test": "mocha",
     "lint": "eslint src"
   },
