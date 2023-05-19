@@ -17,8 +17,8 @@ const data: Buffer = readFile('/path/to/file', {sudo: true});
 const data: Buffer = await readFilePromise('/path/to/file', {sudo: true});
 
 // write file
-writeFile('/path/to/file', 'data', {sudo: true});
-await writeFilePromise('/path/to/file', 'data', {sudo: true});
+writeFile('/path/to/file', Buffer.from('data'), {sudo: true});
+await writeFilePromise('/path/to/file', Buffer.from('data'), {sudo: true});
 
 // delete file
 deleteFile('/path/to/file', {sudo: true});
