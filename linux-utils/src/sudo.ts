@@ -40,36 +40,54 @@ function sudoArgs(args: string[], options: ILinuxSudoOptions) {
 	return [sudoPath, '-n', ...args];
 }
 
+/**
+ * Write file with sudo and tee
+ */
 export function sudoWriteFile(fileName: string, content: Buffer, options: ILinuxSudoOptions) {
 	const [cmd, ...args] = sudoArgs(['tee', fileName], options);
 	sudoFileLogger?.debug('sudoWriteFile:', cmd, args);
 	execFileSync(cmd, args, {input: content});
 }
 
+/**
+ * Read file with sudo and cat
+ */
 export function sudoReadFile(fileName: string, options: ILinuxSudoOptions): Buffer {
 	const [cmd, ...args] = sudoArgs(['cat', fileName], options);
 	sudoFileLogger?.debug('sudoReadFile:', cmd, args);
 	return execFileSync(cmd, args);
 }
 
+/**
+ * Delete file with sudo and rm
+ */
 export function sudoDeleteFile(fileName: string, options: ILinuxSudoOptions): void {
 	const [cmd, ...args] = sudoArgs(['rm', '-f', fileName], options);
 	sudoFileLogger?.debug('sudoDeleteFile:', cmd, args);
 	execFileSync(cmd, args);
 }
 
+/**
+ * Async write file with sudo and tee
+ */
 export async function sudoWriteFilePromise(fileName: string, content: Buffer, options: ILinuxSudoOptions): Promise<void> {
 	const [cmd, ...args] = sudoArgs(['tee', fileName], options);
 	sudoFileLogger?.debug('sudoWriteFilePromise:', cmd, args);
 	await execFilePromise(cmd, args, content);
 }
 
+/**
+ * Async read file with sudo and cat
+ */
 export function sudoReadFilePromise(fileName: string, options: ILinuxSudoOptions): Promise<Buffer> {
 	const [cmd, ...args] = sudoArgs(['cat', fileName], options);
 	sudoFileLogger?.debug('sudoReadFilePromise:', cmd, args);
 	return execFilePromise(cmd, args);
 }
 
+/**
+ * Async delete file with sudo and rm
+ */
 export async function sudoDeleteFilePromise(fileName: string, options: ILinuxSudoOptions): Promise<void> {
 	const [cmd, ...args] = sudoArgs(['rm', '-f', fileName], options);
 	sudoFileLogger?.debug('sudoDeleteFilePromise:', cmd, args);

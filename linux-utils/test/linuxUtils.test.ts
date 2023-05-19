@@ -1,8 +1,10 @@
+/* eslint-disable sonarjs/no-duplicate-string */
+/* eslint-disable import/first */
 process.env.NODE_ENV = 'test';
-import * as fs from 'fs';
-import * as chai from 'chai';
 import 'mocha';
-import {writeFile, readFile, deleteFile, deleteFilePromise, readFilePromise, writeFilePromise} from '../src';
+import * as chai from 'chai';
+import * as fs from 'fs';
+import {deleteFile, deleteFilePromise, readFile, readFilePromise, writeFile, writeFilePromise} from '../src';
 
 const expect = chai.expect;
 
