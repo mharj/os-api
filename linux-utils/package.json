@@ -1,6 +1,6 @@
 {
   "name": "@avanio/os-api-linux-utils",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
@@ -9,6 +9,9 @@
     "test": "mocha",
     "lint": "eslint src"
   },
+  "files": [
+    "dist"
+  ],
   "mocha": {
     "exit": true,
     "extension": [

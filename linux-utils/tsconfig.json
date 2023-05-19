@@ -7,7 +7,7 @@
 			"DOM",
 		],
 		"rootDir": "./src",
-		"outDir": "./",
+		"outDir": "./dist",
 		"moduleResolution": "node",
 		"sourceRoot": "./src",
 		"types": [
