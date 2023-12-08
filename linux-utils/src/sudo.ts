@@ -1,3 +1,4 @@
+import {constants} from 'fs';
 import {execFilePromise} from './execFilePromise';
 import {execFileSync} from 'child_process';
 import {ILoggerLike} from '@avanio/logger-like';
@@ -9,7 +10,13 @@ export function setSudoFileLogger(logger: ILoggerLike) {
 }
 
 export interface ILinuxSudoOptions {
+	/**
+	 * Use sudo
+	 */
 	sudo?: boolean;
+	/**
+	 * User to sudo as, defaults to root
+	 */
 	sudoUser?: string;
 	sudoPath?: string;
 }
@@ -23,6 +30,26 @@ function sudoArgs(args: string[], options: ILinuxSudoOptions) {
 		return [sudoPath, '-n', '-U', options.sudoUser, ...args];
 	}
 	return [sudoPath, '-n', ...args];
+}
+
+function buildTestArg(mode?: number) {
+	switch (mode) {
+		case constants.X_OK:
+			return '-x';
+		case constants.W_OK:
+			return '-w';
+		case constants.R_OK:
+			return '-r';
+		case constants.F_OK:
+		default:
+			return '-e';
+	}
+}
+
+export function sudoAccessFile(fileName: string, mode: number = constants.F_OK, options: ILinuxSudoOptions): void {
+	const [cmd, ...args] = sudoArgs(['test', buildTestArg(mode), fileName], options);
+	sudoFileLogger?.debug('sudoAccessFile:', cmd, args);
+	execFileSync(cmd, args);
 }
 
 /**
@@ -50,6 +77,12 @@ export function sudoDeleteFile(fileName: string, options: ILinuxSudoOptions): vo
 	const [cmd, ...args] = sudoArgs(['rm', '-f', fileName], options);
 	sudoFileLogger?.debug('sudoDeleteFile:', cmd, args);
 	execFileSync(cmd, args);
+}
+
+export async function sudoAccessFilePromise(fileName: string, mode: number = constants.F_OK, options: ILinuxSudoOptions): Promise<void> {
+	const [cmd, ...args] = sudoArgs(['test', buildTestArg(mode), fileName], options);
+	sudoFileLogger?.debug('sudoAccessFilePromise:', cmd, args);
+	await execFilePromise(cmd, args);
 }
 
 /**

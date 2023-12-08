@@ -1,10 +1,11 @@
+/* eslint-disable no-unused-expressions */
 /* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable import/first */
 process.env.NODE_ENV = 'test';
 import 'mocha';
 import * as chai from 'chai';
 import * as fs from 'fs';
-import {deleteFile, deleteFilePromise, readFile, readFilePromise, writeFile, writeFilePromise} from '../src';
+import {accessFile, accessFilePromise, deleteFile, deleteFilePromise, readFile, readFilePromise, writeFile, writeFilePromise} from '../src';
 
 const expect = chai.expect;
 
@@ -16,6 +17,9 @@ describe('linux utils', () => {
 		});
 		it('should read text file', async () => {
 			expect(readFile('./test.txt', {sudo: true}).toString()).to.be.eq('demo');
+		});
+		it('should access text file', async () => {
+			expect(accessFile('./test.txt', fs.constants.R_OK, {sudo: true})).not.to.throw;
 		});
 		it('should delete text file', async () => {
 			deleteFile('./test.txt', {sudo: true});
@@ -29,6 +33,9 @@ describe('linux utils', () => {
 		});
 		it('should read text file', async () => {
 			expect((await readFilePromise('./test.txt', {sudo: true})).toString()).to.be.eq('demo');
+		});
+		it('should access text file', async () => {
+			expect(async () => await accessFilePromise('./test.txt', fs.constants.R_OK, {sudo: true})).not.to.throw;
 		});
 		it('should delete text file', async () => {
 			await deleteFilePromise('./test.txt', {sudo: true});
