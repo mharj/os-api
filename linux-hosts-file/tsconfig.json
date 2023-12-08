@@ -17,12 +17,12 @@
         "inlineSources": false,
         "inlineSourceMap": true,
         "forceConsistentCasingInFileNames": true,
+        "noUncheckedIndexedAccess": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noImplicitAny": true,
         "importHelpers": false,
         "strictNullChecks": true,
-        "suppressImplicitAnyIndexErrors": true,
         "noUnusedLocals": true,
         "strict": true,
     },
@@ -32,7 +32,6 @@
     "exclude": [
         "node_modules",
         "**/*.spec.ts",
-        "test",
         "dist"
     ]
 }

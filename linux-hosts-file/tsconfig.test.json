@@ -3,5 +3,9 @@
   "compilerOptions": {
     "module": "commonjs"
   },
-  "importHelpers": false
+  "importHelpers": false,
+  "include": [
+    "src",
+    "test"
+  ]
 }
