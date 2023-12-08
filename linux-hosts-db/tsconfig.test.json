@@ -3,5 +3,14 @@
   "compilerOptions": {
     "module": "commonjs"
   },
-  "importHelpers": false
+  "importHelpers": false,
+  "include": [
+    "./src/**/*",
+    "./test/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "dist"
+  ]
 }

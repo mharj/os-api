@@ -1,37 +1,10 @@
-import {execFileSync} from 'child_process';
-import {access as accessFile} from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
-import {isIP} from 'net';
-import {ServiceState} from '@avanio/os-api-shared/types/service';
-import {ErrorLike} from '@avanio/os-api-shared/types/ErrorLike';
+import {AbstractLinuxHosts, HostEntry, IErrorLike, isValidLine, parseHostLine, ServiceStatusObject} from '@avanio/os-api-shared';
+import {execFilePromise, ILinuxSudoOptions, accessFilePromise} from '@avanio/os-api-linux-utils';
+import {ILoggerLike} from '@avanio/logger-like';
 
-const isValidHostnameRegex = /^[a-z\.\-0-9]+$/;
-function isValidHostname(hostname: string): boolean {
-	return isValidHostnameRegex.test(hostname);
-}
-
-export interface IHostFileEntry {
-	line: number;
-	address: string;
-	hostname: string;
-	aliases: string[];
-}
-
-export interface IHostEntry {
-	address: string;
-	hostname: string;
-	aliases: string[];
-}
-
-interface IHostsApiFunctions {
-	status(): Promise<ServiceState>;
-	list(): Promise<IHostFileEntry[]>;
-	delete(value: IHostFileEntry): Promise<boolean>;
-	add(value: IHostEntry): Promise<boolean>;
-}
-
-interface LinuxHostsProps {
+type LinuxHostsDbProps = {
 	/**
 	 * NSS database file path
 	 *
@@ -43,37 +16,37 @@ interface LinuxHostsProps {
 	 * @default '/usr/bin/makedb'
 	 */
 	makedb?: string;
-	/**
-	 * Do we need to use sudo to access the db file.
-	 * @default false
-	 */
-	sudo?: boolean;
-}
+};
 
-const initialProps: Required<LinuxHostsProps> = {
+const initialProps: Required<LinuxHostsDbProps> & ILinuxSudoOptions = {
 	file: '/var/lib/misc/hosts.db',
 	makedb: '/usr/bin/makedb',
 	sudo: false,
 };
 
-export class LinuxHostsDb implements IHostsApiFunctions {
-	public readonly name = 'linux-hosts';
-	public readonly version = 1;
-	public props: Required<LinuxHostsProps>;
-	constructor(props: LinuxHostsProps) {
+export class LinuxHostsDb extends AbstractLinuxHosts {
+	public readonly name = 'LinuxHostsDb';
+	private logger?: ILoggerLike;
+	public props: Required<LinuxHostsDbProps> & ILinuxSudoOptions;
+	constructor(props: LinuxHostsDbProps & ILinuxSudoOptions, logger?: ILoggerLike) {
+		super();
 		this.props = {...initialProps, ...props};
+		this.logger = logger;
 	}
-	async status(): Promise<ServiceState> {
-		const errors: ErrorLike[] = [];
+
+	public async status(): Promise<ServiceStatusObject> {
+		const errors: IErrorLike[] = [];
 		try {
-			await accessFile(this.props.file, fs.constants.W_OK);
+			// check if we can access the file and have write access
+			await accessFilePromise(this.props.file, fs.constants.W_OK, this.props);
 		} catch (e) {
-			errors.push({name: 'FileError', message: 'no db file found or access denied'});
+			errors.push({name: 'FileError', message: `no db file ${this.props.file} found or write access denied`});
 		}
 		try {
-			await accessFile(this.props.makedb, fs.constants.X_OK);
+			// check if we can access the makedb executable and have execute access
+			await accessFilePromise(this.props.makedb, fs.constants.X_OK, this.props);
 		} catch (e) {
-			errors.push({name: 'FileError', message: 'no makedb executable found or access denied'});
+			errors.push({name: 'FileError', message: `no makedb executable found from ${this.props.makedb} or access denied`});
 		}
 		if (errors.length > 0) {
 			return {
@@ -86,64 +59,31 @@ export class LinuxHostsDb implements IHostsApiFunctions {
 			};
 		}
 	}
-	async list(): Promise<IHostFileEntry[]> {
-		return this.parseLines(this.readRawLines());
+
+	protected toOutput(value: HostEntry): string {
+		return `${value.address} ${value.hostname} ${value.aliases.join(' ')}`;
 	}
-	async delete(value: IHostFileEntry): Promise<boolean> {
-		const lines = await this.list();
-		const index = lines.findIndex((entry) => entry.line === value.line && entry.address === value.address && entry.hostname === value.hostname);
-		if (index !== -1) {
-			lines.splice(index, 1);
-			this.writeRawLines(lines.map(this.entryToString));
-			return true;
+
+	protected fromOutput(value: string): HostEntry | undefined {
+		if (isValidLine(value)) {
+			return parseHostLine(value, this.logger);
 		}
-		const entry = lines.find((entry) => entry.hostname === value.hostname);
-		if (entry && value.line !== entry.line) {
-			throw new Error('Hostfile might have been changed since the entry was read');
-		}
-		return false;
+		return undefined;
 	}
-	async add(value: IHostEntry): Promise<boolean> {
-		if (!isIP(value.address)) {
-			throw new TypeError(`Invalid IP address value: ${value.address}`);
-		}
-		if (!isValidHostname(value.hostname)) {
-			throw new TypeError(`Invalid hostname value: ${value.hostname}`);
-		}
-		if (!value.aliases.every(isValidHostname)) {
-			throw new TypeError(`Invalid alias value in: ${JSON.stringify(value.aliases)}`);
-		}
-		const lines = this.readRawLines();
-		const outLine = `${value.address} ${value.hostname} ${value.aliases.join(' ')}`;
-		lines.push(outLine);
-		this.writeRawLines(lines);
-		return true;
+
+	protected async storeOutput(value: string[]): Promise<void> {
+		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
+		this.logger?.debug('LinuxHostsDb::storeOutput:', cmd, args);
+		await execFilePromise(cmd, args, Buffer.from(value.join('\n')));
 	}
-	private entryToString(entry: IHostFileEntry): string {
-		return `${entry.address} ${entry.hostname} ${entry.aliases.join(' ')}`;
-	}
-	private parseLines(lines: string[]): IHostFileEntry[] {
-		return lines.reduce<IHostFileEntry[]>((output, line, index) => {
-			// cleanup line
-			line = line.replace(/\s+/g, ' ').trim();
-			if (line.length > 0 && !line.startsWith('#')) {
-				const [address, hostname, ...aliases] = line.split(' ');
-				if (address && isIP(address) && hostname) {
-					output.push({line: index, address, hostname, aliases});
-				}
-			}
-			return output;
-		}, []);
-	}
-	private readRawLines(): string[] {
+
+	protected async loadOutput(): Promise<string[]> {
 		const {cmd, args} = this.buildExecParams(['--quiet', '-u', path.resolve(this.props.file)]);
-		const data = execFileSync(cmd, args);
+		this.logger?.debug('LinuxHostsDb::loadOutput:', cmd, args);
+		const data = await execFilePromise(cmd, args);
 		return data.toString().split('\n');
 	}
-	private writeRawLines(lines: string[]): void {
-		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
-		execFileSync(cmd, args, {input: lines.join('\n')});
-	}
+
 	private buildExecParams(args: string[]): {cmd: string; args: string[]} {
 		const newArgs = [this.props.makedb, ...args];
 		if (this.props.sudo) {

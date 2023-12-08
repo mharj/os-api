@@ -5,7 +5,10 @@
   "main": "./index.js",
   "scripts": {
     "build": "tsc",
-    "test": "mocha"
+    "watch": "tsc -w",
+    "prepublishOnly": "npm run build",
+    "test": "mocha",
+    "lint": "eslint src"
   },
   "mocha": {
     "exit": true,
@@ -26,15 +29,29 @@
   "author": "mharj",
   "license": "ISC",
   "devDependencies": {
-    "@types/chai": "^4.3.1",
-    "@types/chai-as-promised": "^7.1.5",
-    "@types/mocha": "^9.1.1",
-    "@types/node": "^18.0.5",
-    "chai": "^4.3.6",
+    "@types/chai": "^4.3.11",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^18.19.3",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^10.0.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-deprecation": "^2.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-sonarjs": "^0.23.0",
+    "mocha": "^10.2.0",
+    "prettier": "^3.1.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",
-    "typescript": "^4.7.4"
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@avanio/logger-like": "^0.1.1",
+    "@avanio/os-api-linux-utils": "^0.0.6",
+    "@avanio/os-api-shared": "^0.0.3"
   }
 }

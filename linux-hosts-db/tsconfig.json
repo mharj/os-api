@@ -22,7 +22,6 @@
         "noImplicitAny": true,
         "importHelpers": false,
         "strictNullChecks": true,
-        "suppressImplicitAnyIndexErrors": true,
         "noUnusedLocals": true,
         "strict": true,
     },
