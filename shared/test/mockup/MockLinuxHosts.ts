@@ -3,7 +3,11 @@ import type {ILoggerLike} from '@avanio/logger-like';
 
 export function buildOutput(value: HostEntry): string {
 	const comment = value.comment ? ` # ${value.comment}` : '';
-	return `${value.address} ${value.hostname} ${value.aliases.join(' ')}${comment}`;
+	const data = `${value.address} ${value.hostname} ${value.aliases.join(' ')}${comment}`;
+	if (parseHostLine(data) === undefined) {
+		throw new Error(`Invalid output line: ${data}`);
+	}
+	return data;
 }
 
 export class MockLinuxHosts extends AbstractLinuxHosts {

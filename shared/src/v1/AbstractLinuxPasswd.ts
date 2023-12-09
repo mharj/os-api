@@ -1,26 +1,24 @@
-import {HostEntry, HostFileEntry} from '../types/v1/hostEntry';
+import {passwdEntrySchema, PasswordEntry, PasswordFileEntry} from '../types';
 import {ApiServiceV1} from '../interfaces/service';
-import {IHostsApiV1} from '../interfaces/v1/IHostsApiV1';
-import {isIP} from 'net';
-import {isValidHostname} from '../lib/hostLineParser';
+import {IPasswdApiV1} from '../interfaces/v1/IPasswdApiV1';
 import {ServiceStatusObject} from '../interfaces/ServiceStatus';
 
-export abstract class AbstractLinuxHosts<Output = string> implements IHostsApiV1, ApiServiceV1 {
+export abstract class AbstractLinuxPasswd<Output = string> implements IPasswdApiV1, ApiServiceV1 {
 	abstract name: string;
 	public readonly version: 1;
 
 	/**
-	 * list all entries from hosts
+	 * list all entries
 	 */
-	public async list(): Promise<HostFileEntry[]> {
+	public async list(): Promise<PasswordFileEntry[]> {
 		await this.assertOnline();
 		return this.dataToFileEntry(await this.loadOutput());
 	}
 
 	/**
-	 * delete entry from hosts
+	 * delete entry
 	 */
-	public async delete(value: HostFileEntry): Promise<boolean> {
+	public async delete(value: PasswordFileEntry): Promise<boolean> {
 		await this.assertOnline();
 		const data = await this.loadOutput();
 		// read value from current data and check if it's same as value
@@ -39,9 +37,9 @@ export abstract class AbstractLinuxHosts<Output = string> implements IHostsApiV1
 	}
 
 	/**
-	 * add new entry to hosts
+	 * add new entry
 	 */
-	public async add(value: HostEntry, index?: number): Promise<boolean> {
+	public async add(value: PasswordEntry, index?: number): Promise<boolean> {
 		await this.assertOnline();
 		this.validateEntry(value);
 		const lines = await this.loadOutput();
@@ -58,9 +56,9 @@ export abstract class AbstractLinuxHosts<Output = string> implements IHostsApiV1
 	}
 
 	/**
-	 * replace current hosts entry with new one
+	 * replace current entry with new one
 	 */
-	public async replace(current: HostFileEntry, replace: HostEntry): Promise<void> {
+	public async replace(current: PasswordFileEntry, replace: PasswordEntry): Promise<void> {
 		await this.assertOnline();
 		this.validateEntry(replace);
 		const data = await this.loadOutput();
@@ -77,27 +75,8 @@ export abstract class AbstractLinuxHosts<Output = string> implements IHostsApiV1
 		throw new Error(`${this.name}: Current entry does not exist`);
 	}
 
-	/**
-	 * list raw stored Output type data
-	 */
-	public listRaw(): Promise<Output[]> {
-		return this.loadOutput();
-	}
-
-	private validateEntry(entry: HostEntry): void {
-		if (!isIP(entry.address)) {
-			throw new TypeError(`${this.name}: Invalid IP address value: ${entry.address}`);
-		}
-		if (!isValidHostname(entry.hostname)) {
-			throw new TypeError(`${this.name}: Invalid hostname value: ${entry.hostname}`);
-		}
-		if (!entry.aliases.every(isValidHostname)) {
-			throw new TypeError(`${this.name}: Invalid alias value in: ${JSON.stringify(entry.aliases)}`);
-		}
-	}
-
-	private dataToFileEntry(data: Output[]): HostFileEntry[] {
-		return data.reduce<HostFileEntry[]>((acc, line, index) => {
+	private dataToFileEntry(data: Output[]): PasswordFileEntry[] {
+		return data.reduce<PasswordFileEntry[]>((acc, line, index) => {
 			const entry = this.fromOutput(line);
 			if (entry) {
 				acc.push({...entry, line: index});
@@ -106,15 +85,30 @@ export abstract class AbstractLinuxHosts<Output = string> implements IHostsApiV1
 		}, []);
 	}
 
-	private isSameEntry(a: HostEntry, b: HostEntry | undefined) {
+	/**
+	 * list raw stored Output type data
+	 */
+	public listRaw(): Promise<Output[]> {
+		return this.loadOutput();
+	}
+
+	private validateEntry(entry: PasswordEntry): void {
+		try {
+			passwdEntrySchema.parse(entry);
+		} catch (e) {
+			throw new TypeError(`${this.name}: Invalid entry: ${JSON.stringify(entry)}`);
+		}
+	}
+
+	private isSameEntry(a: PasswordEntry, b: PasswordEntry | undefined) {
 		if (!b) {
 			return false;
 		}
-		return a.address === b.address && a.hostname === b.hostname;
+		return a.username === b.username;
 	}
 
-	private isSameEntryCallback(a: HostEntry): (b: HostEntry) => boolean {
-		return (b: HostEntry) => {
+	private isSameEntryCallback(a: PasswordEntry): (b: PasswordEntry) => boolean {
+		return (b: PasswordEntry) => {
 			return this.isSameEntry(a, b);
 		};
 	}
@@ -127,8 +121,8 @@ export abstract class AbstractLinuxHosts<Output = string> implements IHostsApiV1
 	}
 
 	public abstract status(): Promise<ServiceStatusObject>;
-	protected abstract toOutput(value: HostEntry): Output;
-	protected abstract fromOutput(value: Output): HostEntry | undefined;
+	protected abstract toOutput(value: PasswordEntry): Output;
+	protected abstract fromOutput(value: Output): PasswordEntry | undefined;
 	protected abstract storeOutput(value: Output[]): Promise<void>;
 	protected abstract loadOutput(): Promise<Output[]>;
 }
