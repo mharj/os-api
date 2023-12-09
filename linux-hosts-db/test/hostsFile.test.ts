@@ -5,7 +5,7 @@ process.env.NODE_ENV = 'test';
 import 'mocha';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import {copyFile} from 'fs/promises';
+import {copyFile, unlink} from 'fs/promises';
 import {HostEntry} from '@avanio/os-api-shared';
 import {LinuxHostsDb} from '../src';
 
@@ -24,6 +24,7 @@ let linuxHosts: LinuxHostsDb;
 
 describe('linux hosts db API', () => {
 	before(async function () {
+		await copyFile('./test/files/hosts.test.db', './test/hosts.db');
 		linuxHosts = new LinuxHostsDb({file: './test/hosts.db', sudo: true});
 		const status = await linuxHosts.status();
 		if (status.status === 'error') {
@@ -32,7 +33,7 @@ describe('linux hosts db API', () => {
 		}
 	});
 	beforeEach(async () => {
-		await copyFile('./test/hosts.test.db', './test/hosts.db');
+		await copyFile('./test/files/hosts.test.db', './test/hosts.db');
 	});
 	it('should list hosts entries', async () => {
 		const data = await linuxHosts.list();
@@ -90,5 +91,8 @@ describe('linux hosts db API', () => {
 			throw new Error('Fatal: Test entry not found');
 		}
 		await expect(linuxHosts.delete({line: 9999, address: '10.10.10.10', hostname: 'asd', aliases: []})).to.be.eventually.eq(false);
+	});
+	after(async () => {
+		await unlink('./test/hosts.db');
 	});
 });
