@@ -5,41 +5,47 @@ process.env.NODE_ENV = 'test';
 import 'mocha';
 import * as chai from 'chai';
 import * as fs from 'fs';
-import {accessFile, accessFilePromise, deleteFile, deleteFilePromise, readFile, readFilePromise, writeFile, writeFilePromise} from '../src';
+import {access, chmod, chown, copyFile, readFile, stat, unlink, writeFile} from '../src';
 
 const expect = chai.expect;
 
 describe('linux utils', () => {
-	describe('sync', () => {
-		it('should write text file', async () => {
-			writeFile('./test.txt', Buffer.from('demo'), {sudo: true});
-			expect(fs.existsSync('./test.txt')).to.be.eq(true);
-		});
-		it('should read text file', async () => {
-			expect(readFile('./test.txt', {sudo: true}).toString()).to.be.eq('demo');
-		});
-		it('should access text file', async () => {
-			expect(accessFile('./test.txt', fs.constants.R_OK, {sudo: true})).not.to.throw;
-		});
-		it('should delete text file', async () => {
-			deleteFile('./test.txt', {sudo: true});
-			expect(fs.existsSync('./test.txt')).to.be.eq(false);
-		});
+	it('should write text file', async () => {
+		await writeFile('./test.txt', Buffer.from('demo'), {sudo: true});
+		expect(fs.existsSync('./test.txt')).to.be.eq(true);
 	});
-	describe('async', () => {
-		it('should write text file', async () => {
-			await writeFilePromise('./test.txt', Buffer.from('demo'), {sudo: true});
-			expect(fs.existsSync('./test.txt')).to.be.eq(true);
-		});
-		it('should read text file', async () => {
-			expect((await readFilePromise('./test.txt', {sudo: true})).toString()).to.be.eq('demo');
-		});
-		it('should access text file', async () => {
-			expect(async () => await accessFilePromise('./test.txt', fs.constants.R_OK, {sudo: true})).not.to.throw;
-		});
-		it('should delete text file', async () => {
-			await deleteFilePromise('./test.txt', {sudo: true});
-			expect(fs.existsSync('./test.txt')).to.be.eq(false);
-		});
+	it('should read text file', async () => {
+		expect((await readFile('./test.txt', {sudo: true})).toString()).to.be.eq('demo');
+	});
+	it('should access text file', async () => {
+		expect(async () => await access('./test.txt', fs.constants.R_OK, {sudo: true})).not.to.throw;
+	});
+	it('should get stats of text file', async () => {
+		const linuxStats = await stat('./test.txt', {sudo: true});
+		const nodeStats = await stat('./test.txt', {sudo: false});
+		expect(linuxStats.mode).to.be.eq(nodeStats.mode);
+		expect(linuxStats.uid).to.be.eq(nodeStats.uid);
+		expect(linuxStats.gid).to.be.eq(nodeStats.gid);
+	});
+	it('should copy text file', async () => {
+		await copyFile('./test.txt', './test.txt.backup', undefined, {sudo: true});
+		expect(fs.existsSync('./test.txt.backup')).to.be.eq(true);
+	});
+	it('should change permissions', async () => {
+		await chmod('./test.txt.backup', 0o444, {sudo: true});
+		const linuxStats = await stat('./test.txt.backup', {sudo: true});
+		expect(linuxStats.mode).to.be.eq(0o100444);
+	});
+	it('should change owner and group', async () => {
+		await chown('./test.txt.backup', 65534, 65534, {sudo: true});
+		const linuxStats = await stat('./test.txt.backup', {sudo: true});
+		expect(linuxStats.uid).to.be.eq(65534);
+		expect(linuxStats.gid).to.be.eq(65534);
+	});
+	it('should delete text file', async () => {
+		await unlink('./test.txt', {sudo: true});
+		expect(fs.existsSync('./test.txt')).to.be.eq(false);
+		await unlink('./test.txt.backup', {sudo: true});
+		expect(fs.existsSync('./test.txt.backup')).to.be.eq(false);
 	});
 });
