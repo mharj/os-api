@@ -1,4 +1,4 @@
-import {passwdEntrySchema, PasswordEntry, PasswordFileEntry} from '../types';
+import {PasswordEntry, PasswordFileEntry, validateLinuxPasswordEntry} from '../types';
 import {ApiServiceV1} from '../interfaces/service';
 import {ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {ServiceStatusObject} from '../interfaces/ServiceStatus';
@@ -94,11 +94,7 @@ export abstract class AbstractLinuxPasswd<Output = string> implements ICommonApi
 	}
 
 	private validateEntry(entry: PasswordEntry): void {
-		try {
-			passwdEntrySchema.parse(entry);
-		} catch (e) {
-			throw new TypeError(`${this.name}: Invalid entry: ${JSON.stringify(entry)}`);
-		}
+		validateLinuxPasswordEntry(entry);
 	}
 
 	private isSameEntry(a: PasswordEntry, b: PasswordEntry | undefined) {
