@@ -23,5 +23,5 @@ export type ShadowEntry = z.infer<typeof shadowEntrySchema>;
  * Linux shadow file entry
  */
 export type ShadowFileEntry = ShadowEntry & {
-	line: number;
+	readonly line: number;
 };

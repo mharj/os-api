@@ -6,5 +6,5 @@ export type HostEntry = {
 };
 
 export type HostFileEntry = HostEntry & {
-	line: number;
+	readonly line: number;
 };

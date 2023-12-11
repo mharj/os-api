@@ -20,5 +20,5 @@ export type PasswordEntry = z.infer<typeof passwdEntrySchema>;
  * Linux password file entry
  */
 export type PasswordFileEntry = PasswordEntry & {
-	line: number;
+	readonly line: number;
 };
