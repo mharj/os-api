@@ -58,9 +58,16 @@ describe('LinuxHosts', () => {
 	});
 	it('should add host entry to list', async () => {
 		const newEntryString = buildOutput(newEntry);
-		await testClass.add(newEntry);
+		expect(await testClass.add(newEntry)).to.be.true;
 		const line = (await testClass.listRaw()).find((e) => e === newEntryString);
 		expect(line).to.not.be.undefined;
+	});
+	it('should replace host entry to list', async () => {
+		const currentEntry = (await testClass.list()).find((e) => e.hostname === newEntry.hostname);
+		if (!currentEntry) {
+			throw new Error('currentEntries is undefined');
+		}
+		expect(await testClass.replace(currentEntry, {...newEntry, comment: 'demo'})).to.be.true;
 	});
 	it('should delete host entry from list', async () => {
 		let currentEntry = (await testClass.list()).find((e) => e.hostname === newEntry.hostname);

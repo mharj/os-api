@@ -1,1 +1,1 @@
-export * from './IHostsApiV1';
+export * from './ICommonApiV1';

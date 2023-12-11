@@ -1,9 +1,9 @@
 import {ShadowEntry, shadowEntrySchema, ShadowFileEntry} from '../types';
 import {ApiServiceV1} from '../interfaces/service';
-import {IShadowApiV1} from '../interfaces/v1/IShadowApiV1';
+import {ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {ServiceStatusObject} from '../interfaces/ServiceStatus';
 
-export abstract class AbstractLinuxShadow<Output = string> implements IShadowApiV1, ApiServiceV1 {
+export abstract class AbstractLinuxShadow<Output = string> implements ICommonApiV1<ShadowEntry, ShadowFileEntry>, ApiServiceV1 {
 	abstract name: string;
 	public readonly version: 1;
 
@@ -52,20 +52,21 @@ export abstract class AbstractLinuxShadow<Output = string> implements IShadowApi
 			lines.splice(index, 0, this.toOutput(value));
 		}
 		await this.storeOutput(lines);
-		return true;
+		return this.verifyWrite(value);
 	}
 
 	/**
 	 * replace current entry with new one
 	 */
-	public async replace(current: ShadowFileEntry, replace: ShadowEntry): Promise<void> {
+	public async replace(current: ShadowFileEntry, replace: ShadowEntry): Promise<boolean> {
 		await this.assertOnline();
 		this.validateEntry(replace);
 		const data = await this.loadOutput();
 		const entry = data[current.line] ? this.fromOutput(data[current.line]) : undefined;
 		if (this.isSameEntry(current, entry)) {
 			data[current.line] = this.toOutput(replace);
-			return this.storeOutput(data);
+			await this.storeOutput(data);
+			return this.verifyWrite(replace);
 		}
 		// if not, check if the value is still in the file but on a different line
 		const lostEntry = this.dataToFileEntry(data).find(this.isSameEntryCallback(current));
@@ -125,4 +126,5 @@ export abstract class AbstractLinuxShadow<Output = string> implements IShadowApi
 	protected abstract fromOutput(value: Output): ShadowEntry | undefined;
 	protected abstract storeOutput(value: Output[]): Promise<void>;
 	protected abstract loadOutput(): Promise<Output[]>;
+	protected abstract verifyWrite(value: ShadowEntry): Promise<boolean>;
 }

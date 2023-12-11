@@ -60,7 +60,7 @@ describe('Linux Shadow', () => {
 	});
 	it('should add entry to list', async () => {
 		const newEntryString = buildOutput(newEntry);
-		await testClass.add(newEntry);
+		expect(await testClass.add(newEntry)).to.be.true;
 		const line = (await testClass.listRaw()).find((e) => e === newEntryString);
 		expect(line).to.not.be.undefined;
 	});
@@ -69,7 +69,7 @@ describe('Linux Shadow', () => {
 		if (!currentEntry) {
 			throw new Error('currentEntries is undefined');
 		}
-		await testClass.replace(currentEntry, {...newEntry, password: '*'});
+		expect(await testClass.replace(currentEntry, {...newEntry, password: '*'})).to.be.true;
 		currentEntry = (await testClass.list()).find((e) => e.username === newEntry.username);
 		if (!currentEntry) {
 			throw new Error('currentEntries is undefined');

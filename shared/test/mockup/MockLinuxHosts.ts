@@ -53,4 +53,8 @@ export class MockLinuxHosts extends AbstractLinuxHosts {
 	protected loadOutput(): Promise<string[]> {
 		return Promise.resolve([...this._data]);
 	}
+
+	protected verifyWrite(value: HostEntry): Promise<boolean> {
+		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	}
 }

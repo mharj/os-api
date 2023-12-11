@@ -64,4 +64,8 @@ export class MockLinuxShadow extends AbstractLinuxShadow {
 	protected loadOutput(): Promise<string[]> {
 		return Promise.resolve([...this._data]);
 	}
+
+	protected verifyWrite(value: ShadowEntry): Promise<boolean> {
+		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	}
 }
