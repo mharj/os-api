@@ -1,6 +1,7 @@
 import {getSudoFileLogger, ILinuxSudoOptions, sudoArgs} from './sudoUtils';
+import {Mode, PathLike} from 'node:fs';
 import {execFilePromise} from './execFilePromise';
-import {Mode} from 'fs';
+import {pathLikeToString} from './pathUtils';
 
 function octetToString(mode: Mode): string {
 	if (typeof mode === 'string') {
@@ -10,12 +11,12 @@ function octetToString(mode: Mode): string {
 }
 
 /**
- * Change file mode with sudo and chmod
+ * Change file or directory mode with sudo and chmod
  *
  * sudo cmd: ['chmod', mode, fileName]
  */
-export async function chmodSudo(fileName: string, mode: Mode, options: ILinuxSudoOptions): Promise<void> {
-	const [cmd, ...args] = sudoArgs(['chmod', octetToString(mode), fileName], options);
+export async function chmodSudo(path: PathLike, mode: Mode, options: ILinuxSudoOptions): Promise<void> {
+	const [cmd, ...args] = sudoArgs(['chmod', octetToString(mode), pathLikeToString(path)], options);
 	getSudoFileLogger()?.debug('chmodSudo:', cmd, args);
 	await execFilePromise(cmd, args);
 }

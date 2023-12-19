@@ -1,9 +1,10 @@
 import {getSudoFileLogger, ILinuxSudoOptions, sudoArgs} from './sudoUtils';
+import {PathLike, Stats} from 'node:fs';
 import {execFilePromise} from './execFilePromise';
-import {Stats} from 'fs';
+import {pathLikeToString} from './pathUtils';
 
-export async function statSudo(fileName: string, options: ILinuxSudoOptions): Promise<Stats> {
-	const [cmd, ...args] = sudoArgs(['stat', '-c', '%n %s %b %f %u %g %D %i %h %t %T %.X %.Y %.Z %.W %o', fileName], options);
+export async function statSudo(path: PathLike, options: ILinuxSudoOptions): Promise<Stats> {
+	const [cmd, ...args] = sudoArgs(['stat', '-c', '%n %s %b %f %u %g %D %i %h %t %T %.X %.Y %.Z %.W %o', pathLikeToString(path)], options);
 	getSudoFileLogger()?.debug('statSudo:', cmd, args);
 	const buffer = await execFilePromise(cmd, args);
 	const [_name, size, blocks, rawMode, uid, gid, dev, inode, hardlinks, major, minor, access, modified, status, created, sizeHint] = buffer

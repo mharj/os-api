@@ -5,7 +5,7 @@ process.env.NODE_ENV = 'test';
 import 'mocha';
 import * as chai from 'chai';
 import * as fs from 'fs';
-import {access, chmod, chown, copyFile, readFile, stat, unlink, writeFile} from '../src';
+import {access, chmod, chown, copyFile, readFile, rename, stat, unlink, writeFile} from '../src';
 
 const expect = chai.expect;
 
@@ -19,6 +19,7 @@ describe('linux utils', () => {
 	});
 	it('should access text file', async () => {
 		expect(async () => await access('./test.txt', fs.constants.R_OK, {sudo: true})).not.to.throw;
+		expect(async () => await access('./none.txt', fs.constants.R_OK, {sudo: true})).to.throw;
 	});
 	it('should get stats of text file', async () => {
 		const linuxStats = await stat('./test.txt', {sudo: true});
@@ -42,7 +43,15 @@ describe('linux utils', () => {
 		expect(linuxStats.uid).to.be.eq(65534);
 		expect(linuxStats.gid).to.be.eq(65534);
 	});
-	it('should delete text file', async () => {
+	it('should rename text file', async () => {
+		await copyFile('./test.txt', './test.txt.rename1', undefined, {sudo: true});
+		await rename('./test.txt.rename1', './test.txt.rename2', {sudo: true});
+		expect(fs.existsSync('./test.txt.rename1')).to.be.eq(false);
+		expect(fs.existsSync('./test.txt.rename2')).to.be.eq(true);
+		await unlink('./test.txt.rename2', {sudo: true});
+		expect(fs.existsSync('./test.txt.rename2')).to.be.eq(false);
+	});
+	it('should remove text file', async () => {
 		await unlink('./test.txt', {sudo: true});
 		expect(fs.existsSync('./test.txt')).to.be.eq(false);
 		await unlink('./test.txt.backup', {sudo: true});

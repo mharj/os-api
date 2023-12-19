@@ -1,13 +1,18 @@
-import {constants, existsSync} from 'fs';
+import {constants, PathLike} from 'node:fs';
 import {getSudoFileLogger, ILinuxSudoOptions, sudoArgs} from './sudoUtils';
+import {accessSudo} from './accessSudo';
 import {execFilePromise} from './execFilePromise';
+import {pathLikeToString} from './pathUtils';
 
-export async function copyFileSudo(source: string, destination: string, mode: number | undefined, options: ILinuxSudoOptions): Promise<void> {
+export async function copyFileSudo(src: PathLike, dest: PathLike, mode: number | undefined, options: ILinuxSudoOptions): Promise<void> {
 	if (mode) {
 		switch (mode) {
 			case constants.COPYFILE_EXCL: {
-				if (existsSync(destination)) {
-					throw new Error(`${destination} already exists`);
+				try {
+					await accessSudo(dest, constants.F_OK, options);
+					throw new Error(`${pathLikeToString(dest)} already exists`);
+				} catch (err) {
+					// File does not exist, continue
 				}
 				break;
 			}
@@ -19,7 +24,7 @@ export async function copyFileSudo(source: string, destination: string, mode: nu
 			}
 		}
 	}
-	const [cmd, ...args] = sudoArgs(['cp', '-f', source, destination], options);
+	const [cmd, ...args] = sudoArgs(['cp', '-f', '--recursive', pathLikeToString(src), pathLikeToString(dest)], options);
 	getSudoFileLogger()?.debug('copyFileSudo:', cmd, args);
 	await execFilePromise(cmd, args);
 }

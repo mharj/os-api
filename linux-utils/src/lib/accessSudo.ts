@@ -1,6 +1,7 @@
+import {constants, PathLike} from 'node:fs';
 import {getSudoFileLogger, ILinuxSudoOptions, sudoArgs} from './sudoUtils';
-import {constants} from 'fs';
 import {execFilePromise} from './execFilePromise';
+import {pathLikeToString} from './pathUtils';
 
 /**
  * Convert mode to test arg
@@ -18,13 +19,14 @@ function buildTestArg(mode?: number) {
 			return '-e';
 	}
 }
+
 /**
  * Check if a file can be accessed with sudo
  *
  * sudo cmd: ['test', mode, fileName]
  */
-export async function accessSudo(fileName: string, mode: number = constants.F_OK, options: ILinuxSudoOptions): Promise<void> {
-	const [cmd, ...args] = sudoArgs(['test', buildTestArg(mode), fileName], options);
+export async function accessSudo(path: PathLike, mode: number = constants.F_OK, options: ILinuxSudoOptions): Promise<void> {
+	const [cmd, ...args] = sudoArgs(['test', buildTestArg(mode), pathLikeToString(path)], options);
 	getSudoFileLogger()?.debug('accessSudo:', cmd, args);
 	await execFilePromise(cmd, args);
 }
