@@ -28,10 +28,10 @@ jobs:
         with:
           node-version: "18.x"
           registry-url: "https://registry.npmjs.org"
+      - run: apt-get install -y libnss-db
       - run: npm ci
       - run: npm test
       - run: npm run lint
-      - run: apt-get install -y libnss-db
 
       # NPM version check
       - name: Get current repo version
