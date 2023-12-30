@@ -32,16 +32,16 @@
     "@types/chai": "^4.3.11",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^18.19.3",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
+    "@types/node": "^18.19.4",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-deprecation": "^2.0.0",
-    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-prettier": "^5.1.2",
     "eslint-plugin-sonarjs": "^0.23.0",
     "mocha": "^10.2.0",
     "prettier": "^3.1.1",
@@ -52,6 +52,6 @@
   "dependencies": {
     "@avanio/logger-like": "^0.1.1",
     "@avanio/os-api-linux-utils": "^0.1.1",
-    "@avanio/os-api-shared": "^0.1.5"
+    "@avanio/os-api-shared": "^0.1.9"
   }
 }

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {AbstractLinuxPasswd, IErrorLike, isValidLine, parsePasswdLine, PasswordEntry, ServiceStatusObject} from '@avanio/os-api-shared';
+import {AbstractLinuxPasswd, IErrorLike, isValidLine, parsePasswdLine, passwdLineBuilder, PasswordEntry, ServiceStatusObject} from '@avanio/os-api-shared';
 import {access, copyFile, execFilePromise, ILinuxSudoOptions} from '@avanio/os-api-linux-utils';
 import {ILoggerLike} from '@avanio/logger-like';
 
@@ -30,8 +30,8 @@ type LinuxHostsDbProps = {
 
 const initialProps: Required<LinuxHostsDbProps> & ILinuxSudoOptions = {
 	backup: false,
-	backupFile: '/var/lib/misc/hosts.db.bak',
-	file: '/var/lib/misc/hosts.db',
+	backupFile: '/var/lib/misc/passwd.db.bak',
+	file: '/var/lib/misc/passwd.db',
 	makedb: '/usr/bin/makedb',
 	sudo: false,
 };
@@ -73,7 +73,7 @@ export class LinuxPasswdDb extends AbstractLinuxPasswd {
 	}
 
 	protected toOutput(value: PasswordEntry): string {
-		return `${value.username}:${value.password}:${value.uid}:${value.gid}:${value.gecos}:${value.home}:${value.shell}`;
+		return passwdLineBuilder(value);
 	}
 
 	protected fromOutput(value: string): PasswordEntry | undefined {
@@ -90,17 +90,17 @@ export class LinuxPasswdDb extends AbstractLinuxPasswd {
 
 	protected async storeOutput(value: string[]): Promise<void> {
 		if (this.props.backup) {
-			this.logger?.debug('LinuxHostsDb::backup', this.props.backupFile);
+			this.logger?.debug(`${this.name}::backup`, this.props.backupFile);
 			await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
 		}
 		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
-		this.logger?.debug('LinuxHostsDb::storeOutput:', cmd, args);
+		this.logger?.debug(`${this.name}::storeOutput:`, cmd, args);
 		await execFilePromise(cmd, args, Buffer.from(value.join('\n')));
 	}
 
 	protected async loadOutput(): Promise<string[]> {
 		const {cmd, args} = this.buildExecParams(['--quiet', '-u', path.resolve(this.props.file)]);
-		this.logger?.debug('LinuxHostsDb::loadOutput:', cmd, args);
+		this.logger?.debug(`${this.name}::loadOutput:`, cmd, args);
 		const data = await execFilePromise(cmd, args);
 		return data
 			.toString()
