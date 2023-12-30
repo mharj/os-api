@@ -76,6 +76,11 @@ export class LinuxHostsDb extends AbstractLinuxHosts {
 		return undefined;
 	}
 
+	protected async verifyWrite(value: HostEntry): Promise<boolean> {
+		const line = this.toOutput(value);
+		return (await this.listRaw()).some((v) => v === line);
+	}
+
 	protected async storeOutput(value: string[]): Promise<void> {
 		if (this.props.backup) {
 			const backupFile = `${this.props.file}.bak`;

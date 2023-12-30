@@ -1,4 +1,4 @@
-name: Publish os-api-linux-passwd-file to npmjs
+name: Publish os-api-linux-passwd-db to npmjs
 on:
   push:
     branches: [main]
