@@ -1,4 +1,4 @@
-import {ShadowEntry, shadowEntrySchema, ShadowFileEntry} from '../types';
+import {ShadowEntry, ShadowFileEntry, validateLinuxShadowEntry} from '../types';
 import {ApiServiceV1} from '../interfaces/service';
 import {ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {ServiceStatusObject} from '../interfaces/ServiceStatus';
@@ -94,11 +94,7 @@ export abstract class AbstractLinuxShadow<Output = string> implements ICommonApi
 	}
 
 	private validateEntry(entry: ShadowEntry): void {
-		try {
-			shadowEntrySchema.parse(entry);
-		} catch (e) {
-			throw new TypeError(`${this.name}: Invalid entry: ${JSON.stringify(entry)}`);
-		}
+		validateLinuxShadowEntry(entry);
 	}
 
 	private isSameEntry(a: ShadowEntry, b: ShadowEntry | undefined) {

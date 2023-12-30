@@ -88,7 +88,7 @@ describe('Linux Shadow', () => {
 	it('should throw error on broken entry', async () => {
 		await expect(testClass.add(brokenEntry)).to.be.eventually.rejectedWith(
 			TypeError,
-			`MockLinuxShadow: Invalid entry: {"username":"asd,wer,rtyqww","password":"x","changed":1000,"min":0,"max":1000,"warn":7}`,
+			`Invalid shadow entry: "username" Invalid. {"username":"asd,wer,rtyqww","password":"x","changed":1000,"min":0,"max":1000,"warn":7}}`,
 		);
 	});
 });

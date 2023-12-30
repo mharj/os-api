@@ -25,3 +25,14 @@ export type ShadowEntry = z.infer<typeof shadowEntrySchema>;
 export type ShadowFileEntry = ShadowEntry & {
 	readonly line: number;
 };
+
+export function validateLinuxShadowEntry(entry: ShadowEntry): void {
+	const parsed = shadowEntrySchema.safeParse(entry);
+	if (!parsed.success) {
+		const issue = parsed.error.issues[0];
+		if (issue) {
+			throw new TypeError(`Invalid shadow entry: "${issue.path.join('.')}" ${issue.message}. ${JSON.stringify(entry)}}`);
+		}
+		throw new TypeError(`Invalid shadow entry: ${JSON.stringify(entry)}`);
+	}
+}
