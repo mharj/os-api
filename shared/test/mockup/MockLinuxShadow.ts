@@ -1,26 +1,10 @@
-import {ServiceStatusObject, ShadowEntry} from '../../src';
+import {ServiceStatusObject, ShadowEntry, shadowLineBuilder} from '../../src';
 import {AbstractLinuxShadow} from '../../src/v1/AbstractLinuxShadow';
 import {ILoggerLike} from '@avanio/logger-like';
 import {parseShadowLine} from '../../src/lib/shadowLineParser';
 
-function nS(value: number | undefined): string {
-	if (value === undefined) {
-		return '';
-	}
-	return value.toString();
-}
-
-function uS(value: string | undefined): string {
-	if (value === undefined) {
-		return '';
-	}
-	return value;
-}
-
 export function buildOutput(value: ShadowEntry): string {
-	const data = `${value.username}:${value.password}:${value.changed}:${value.min}:${value.max}:${value.warn}:${nS(value.inactive)}:${nS(value.expire)}:${uS(
-		value.reserved,
-	)}`;
+	const data = shadowLineBuilder(value);
 	if (parseShadowLine(data) === undefined) {
 		throw new Error(`Invalid output line: ${data}`);
 	}

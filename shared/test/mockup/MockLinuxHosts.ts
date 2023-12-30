@@ -1,9 +1,8 @@
-import {AbstractLinuxHosts, HostEntry, isValidLine, parseHostLine, ServiceStatusObject} from '../../src/';
+import {AbstractLinuxHosts, HostEntry, hostLineBuilder, isValidLine, parseHostLine, ServiceStatusObject} from '../../src/';
 import type {ILoggerLike} from '@avanio/logger-like';
 
 export function buildOutput(value: HostEntry): string {
-	const comment = value.comment ? ` # ${value.comment}` : '';
-	const data = `${value.address} ${value.hostname} ${value.aliases.join(' ')}${comment}`;
+	const data = hostLineBuilder(value);
 	if (parseHostLine(data) === undefined) {
 		throw new Error(`Invalid output line: ${data}`);
 	}

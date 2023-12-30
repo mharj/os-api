@@ -1,10 +1,10 @@
-import {PasswordEntry, ServiceStatusObject} from '../../src';
+import {passwdLineBuilder, PasswordEntry, ServiceStatusObject} from '../../src';
 import {AbstractLinuxPasswd} from '../../src/v1/AbstractLinuxPasswd';
 import {ILoggerLike} from '@avanio/logger-like';
 import {parsePasswdLine} from '../../src/lib/passwdLineParser';
 
 export function buildOutput(value: PasswordEntry): string {
-	const data = `${value.username}:${value.password}:${value.uid}:${value.gid}:${value.gecos}:${value.home}:${value.shell}`;
+	const data = passwdLineBuilder(value);
 	if (parsePasswdLine(data) === undefined) {
 		throw new Error(`Invalid output line: ${data}`);
 	}
