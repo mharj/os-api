@@ -89,7 +89,7 @@ describe('Linux Passwd', () => {
 	it('should throw error on broken entry', async () => {
 		await expect(testClass.add(brokenEntry)).to.be.eventually.rejectedWith(
 			TypeError,
-			`Invalid passwd entry: "username" contains invalid characters. {"username":"asd,wer,rtyqww","password":"x","uid":1000,"gid":1000,"gecos":"test user","home":"/home/testuser","shell":"/bin/bash"}}`,
+			`Invalid passwd entry: "username" contains invalid characters. {"username":"asd,wer,rtyqww","password":"x","uid":1000,"gid":1000,"gecos":"test user","home":"/home/testuser","shell":"/bin/bash"}`,
 		);
 	});
 });
