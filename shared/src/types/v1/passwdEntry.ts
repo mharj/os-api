@@ -28,7 +28,7 @@ export function validateLinuxPasswordEntry(entry: PasswordEntry): void {
 	if (!parsed.success) {
 		const issue = parsed.error.issues[0];
 		if (issue) {
-			throw new TypeError(`Invalid passwd entry: "${issue.path.join('.')}" ${issue.message}. ${JSON.stringify(entry)}}`);
+			throw new TypeError(`Invalid passwd entry: "${issue.path.join('.')}" ${issue.message}. ${JSON.stringify(entry)}`);
 		}
 		throw new TypeError(`Invalid passwd entry: ${JSON.stringify(entry)}`);
 	}

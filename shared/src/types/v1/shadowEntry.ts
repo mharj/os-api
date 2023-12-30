@@ -31,7 +31,7 @@ export function validateLinuxShadowEntry(entry: ShadowEntry): void {
 	if (!parsed.success) {
 		const issue = parsed.error.issues[0];
 		if (issue) {
-			throw new TypeError(`Invalid shadow entry: "${issue.path.join('.')}" ${issue.message}. ${JSON.stringify(entry)}}`);
+			throw new TypeError(`Invalid shadow entry: "${issue.path.join('.')}" ${issue.message}. ${JSON.stringify(entry)}`);
 		}
 		throw new TypeError(`Invalid shadow entry: ${JSON.stringify(entry)}`);
 	}
