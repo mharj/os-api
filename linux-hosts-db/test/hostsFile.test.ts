@@ -81,7 +81,7 @@ describe('linux hosts db API', () => {
 			throw new Error('Fatal: Test entry not found');
 		}
 		await linuxHosts.add({address: '10.10.10.1', hostname: 'some', aliases: []});
-		await expect(linuxHosts.delete(testEntry)).to.be.eventually.rejectedWith(Error, 'LinuxHostsDb: hosts might have been changed since the entry was read');
+		await expect(linuxHosts.delete(testEntry)).to.be.eventually.rejectedWith(Error, 'LinuxHostsDb: might have been changed since the entry was read');
 	});
 	it('should return false if deleting not existing entry', async () => {
 		await linuxHosts.add(testData);
