@@ -4,4 +4,6 @@ export * from './passwdLineParser';
 export * from './passwdLineBuilder';
 export * from './shadowLineParser';
 export * from './shadowLineBuilder';
+export * from './nssConfLineParser';
+export * from './nssConfLineBuilder';
 export * from './errorLike';

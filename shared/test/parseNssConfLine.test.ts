@@ -4,9 +4,9 @@
 import * as chai from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
-import {parseShadowLine} from '../src/lib/shadowLineParser';
-import {ShadowEntry} from '../src/types/v1/shadowEntry';
+import {parseNssConfLine} from '../src/lib/nssConfLineParser';
 import type {ILoggerLike} from '@avanio/logger-like';
+import {NssEntry} from '../src';
 
 const expect = chai.expect;
 
@@ -24,33 +24,27 @@ const spyLogger: ILoggerLike = {
 
 type TestValue = {
 	input: string;
-	output: ShadowEntry | undefined;
+	output: NssEntry | undefined;
 };
 
 const validHostTest: TestValue[] = [
 	{
-		input: 'root:*:16193:0:99999:7:::',
-		output: {username: 'root', password: '*', changed: 16193, min: 0, max: 99999, warn: 7, inactive: undefined, expire: undefined, reserved: undefined},
+		input: 'shadow:         compat',
+		output: {database: 'shadow', providers: [{provider: 'compat'}]},
 	},
 	{
-		input: 'nobody:*:16193:0:99999:7:::',
-		output: {
-			username: 'nobody',
-			password: '*',
-			changed: 16193,
-			min: 0,
-			max: 99999,
-			warn: 7,
-			inactive: undefined,
-			expire: undefined,
-			reserved: undefined,
-		},
+		input: 'hosts:          dns files',
+		output: {database: 'hosts', providers: [{provider: 'dns'}, {provider: 'files'}]},
+	},
+	{
+		input: 'hosts:          dns [!UNAVAIL=return] files',
+		output: {database: 'hosts', providers: [{provider: 'dns', action: {status: '!UNAVAIL', action: 'return'}}, {provider: 'files'}]},
 	},
 ];
 
 type TestBrokenValue = {
 	input: string;
-	output: ShadowEntry | undefined;
+	output: NssEntry | undefined;
 	infoCount: number;
 	infoMessages: string[];
 };
@@ -59,33 +53,27 @@ const brokenHostTest: TestBrokenValue[] = [
 	{input: '# some comments here', output: undefined, infoCount: 0, infoMessages: []},
 	{input: '', output: undefined, infoCount: 0, infoMessages: []},
 	{
-		input: 'not valid shadow line',
+		input: 'not valid nss line',
 		output: undefined,
 		infoCount: 1,
 		infoMessages: [
-			'Invalid shadow line: "username" Invalid. {"username":"not valid shadow line","changed":false,"min":false,"max":false,"warn":false,"inactive":false,"expire":false}',
+			"Invalid nss line: \"database\" Invalid enum value. Expected 'aliases' | 'ethers' | 'group' | 'hosts' | 'initgroups' | 'netgroup' | 'networks' | 'passwd' | 'protocols' | 'publickey' | 'rpc' | 'services' | 'shadow', received 'not valid nss line'. {\"database\":\"not valid nss line\",\"providers\":[]}",
 		],
 	},
 	{
-		input: 'ää:*:16193:0:99999:7:::',
-		output: undefined,
-		infoCount: 1,
-		infoMessages: ['Invalid shadow line: "username" Invalid. {"username":"ää","password":"*","changed":16193,"min":0,"max":99999,"warn":7}'],
-	},
-	{
-		input: 'root:*:16193:0:99999:7::undefined:',
+		input: 'ää:0:0:gecos:home:login',
 		output: undefined,
 		infoCount: 1,
 		infoMessages: [
-			'Invalid shadow line: "expire" Expected number, received nan. {"username":"root","password":"*","changed":16193,"min":0,"max":99999,"warn":7,"expire":null}',
+			"Invalid nss line: \"database\" Invalid enum value. Expected 'aliases' | 'ethers' | 'group' | 'hosts' | 'initgroups' | 'netgroup' | 'networks' | 'passwd' | 'protocols' | 'publickey' | 'rpc' | 'services' | 'shadow', received 'ää'. {\"database\":\"ää\",\"providers\":[{\"provider\":\"0\"}]}",
 		],
 	},
 ];
 
-describe('parseShadowLine', () => {
+describe('parseNssConfLine', () => {
 	it('should parse valid lines', async () => {
 		validHostTest.forEach(({input, output}) => {
-			const entry = parseShadowLine(input);
+			const entry = parseNssConfLine(input);
 			expect(entry).to.not.be.undefined;
 			expect(entry).to.deep.equal(output);
 		});
@@ -93,7 +81,7 @@ describe('parseShadowLine', () => {
 	it('should not parse broken lines', async () => {
 		brokenHostTest.forEach(({input, output, infoCount, infoMessages}) => {
 			infoSpy.resetHistory();
-			const entry = parseShadowLine(input, spyLogger);
+			const entry = parseNssConfLine(input, spyLogger);
 			expect(entry).to.be.undefined;
 			expect(entry).to.be.equal(output);
 			expect(infoSpy.callCount).to.be.equal(infoCount);

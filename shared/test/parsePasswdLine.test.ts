@@ -48,8 +48,20 @@ type TestBrokenValue = {
 const brokenHostTest: TestBrokenValue[] = [
 	{input: '# some comments here', output: undefined, infoCount: 0, infoMessages: []},
 	{input: '', output: undefined, infoCount: 0, infoMessages: []},
-	{input: 'not valid password line', output: undefined, infoCount: 1, infoMessages: ['Invalid passwd line: not valid password line']},
-	{input: 'ää:0:0:gecos:home:login', output: undefined, infoCount: 1, infoMessages: ['Invalid passwd line: ää:0:0:gecos:home:login']},
+	{
+		input: 'not valid password line',
+		output: undefined,
+		infoCount: 1,
+		infoMessages: ['Invalid passwd line: "username" contains invalid characters. {"username":"not valid password line","uid":false,"gid":false}'],
+	},
+	{
+		input: 'ää:0:0:gecos:home:login',
+		output: undefined,
+		infoCount: 1,
+		infoMessages: [
+			'Invalid passwd line: "username" contains invalid characters. {"username":"ää","password":"0","uid":0,"gid":null,"gecos":"home","home":"login"}',
+		],
+	},
 ];
 
 describe('parsePasswdLine', () => {

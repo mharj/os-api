@@ -1,5 +1,6 @@
 /* eslint-disable sort-keys */
 import {ShadowEntry, shadowEntrySchema} from '../types/v1/shadowEntry';
+import {getErrorStr} from './zodError';
 import {ILoggerLike} from '@avanio/logger-like';
 import {isComment} from './common';
 
@@ -19,19 +20,20 @@ export function parseShadowLine(line: string, logger?: ILoggerLike): ShadowEntry
 		return undefined;
 	}
 	const [username, password, changed, min, max, warn, inactive, expire, reserved] = input.split(':');
-	const status = shadowEntrySchema.safeParse({
+	const rawData = {
 		username,
 		password,
-		changed: parseInt(changed, 10),
-		min: parseInt(min, 10),
-		max: parseInt(max, 10),
-		warn: parseInt(warn, 10),
-		inactive: stringIntOrUndefined(inactive),
-		expire: stringIntOrUndefined(expire),
+		changed: changed !== undefined && parseInt(changed, 10),
+		min: min !== undefined && parseInt(min, 10),
+		max: max !== undefined && parseInt(max, 10),
+		warn: warn !== undefined && parseInt(warn, 10),
+		inactive: inactive !== undefined && stringIntOrUndefined(inactive),
+		expire: expire !== undefined && stringIntOrUndefined(expire),
 		reserved: reserved || undefined,
-	});
+	};
+	const status = shadowEntrySchema.safeParse(rawData);
 	if (!status.success) {
-		logger?.info(`Invalid shadow line: ${line}`);
+		logger?.info(`Invalid shadow line: ${getErrorStr(status, rawData)}`);
 		return undefined;
 	}
 	return status.data;

@@ -1,24 +1,24 @@
-import {HostEntry, HostFileEntry, validateLinuxHostsEntry} from '../types/v1/hostEntry';
+import {NssEntry, NssFileEntry, validateLinuxNssEntry} from '../types/v1/nsSwitchEntry';
 import {ApiServiceV1} from '../interfaces/service';
 import {ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {ServiceStatusObject} from '../interfaces/ServiceStatus';
 
-export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV1<HostEntry, HostFileEntry>, ApiServiceV1 {
+export abstract class AbstractLinuxNss<Output = string> implements ICommonApiV1<NssEntry, NssFileEntry>, ApiServiceV1 {
 	abstract name: string;
 	public readonly version = 1;
 
 	/**
-	 * list all entries from hosts
+	 * list all entries
 	 */
-	public async list(): Promise<HostFileEntry[]> {
+	public async list(): Promise<NssFileEntry[]> {
 		await this.assertOnline();
 		return this.dataToFileEntry(await this.loadOutput());
 	}
 
 	/**
-	 * delete entry from hosts
+	 * delete entry
 	 */
-	public async delete(value: HostFileEntry): Promise<boolean> {
+	public async delete(value: NssFileEntry): Promise<boolean> {
 		await this.assertOnline();
 		const data = await this.loadOutput();
 		// read value from current data and check if it's same as value
@@ -40,7 +40,7 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 	/**
 	 * add new entry to hosts
 	 */
-	public async add(value: HostEntry, index?: number): Promise<boolean> {
+	public async add(value: NssEntry, index?: number): Promise<boolean> {
 		await this.assertOnline();
 		this.validateEntry(value);
 		const lines = await this.loadOutput();
@@ -57,9 +57,9 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 	}
 
 	/**
-	 * replace current hosts entry with new one
+	 * replace current entry with new one
 	 */
-	public async replace(current: HostFileEntry, replace: HostEntry): Promise<boolean> {
+	public async replace(current: NssFileEntry, replace: NssEntry): Promise<boolean> {
 		await this.assertOnline();
 		this.validateEntry(replace);
 		const data = await this.loadOutput();
@@ -78,19 +78,8 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 		throw new Error(`${this.name}: Current entry does not exist`);
 	}
 
-	/**
-	 * list raw stored Output type data
-	 */
-	public listRaw(): Promise<Output[]> {
-		return this.loadOutput();
-	}
-
-	private validateEntry(entry: HostEntry): void {
-		validateLinuxHostsEntry(entry);
-	}
-
-	private dataToFileEntry(data: Output[]): HostFileEntry[] {
-		return data.reduce<HostFileEntry[]>((acc, line, index) => {
+	private dataToFileEntry(data: Output[]): NssFileEntry[] {
+		return data.reduce<NssFileEntry[]>((acc, line, index) => {
 			const entry = this.fromOutput(line);
 			if (entry) {
 				acc.push({...entry, line: index});
@@ -99,15 +88,26 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 		}, []);
 	}
 
-	private isSameEntry(a: HostEntry, b: HostEntry | undefined) {
+	/**
+	 * list raw stored Output type data
+	 */
+	public listRaw(): Promise<Output[]> {
+		return this.loadOutput();
+	}
+
+	private validateEntry(entry: NssEntry): void {
+		validateLinuxNssEntry(entry);
+	}
+
+	private isSameEntry(a: NssEntry, b: NssEntry | undefined) {
 		if (!b) {
 			return false;
 		}
-		return a.address === b.address && a.hostname === b.hostname;
+		return a.database === b.database;
 	}
 
-	private isSameEntryCallback(a: HostEntry): (b: HostEntry) => boolean {
-		return (b: HostEntry) => {
+	private isSameEntryCallback(a: NssEntry): (b: NssEntry) => boolean {
+		return (b: NssEntry) => {
 			return this.isSameEntry(a, b);
 		};
 	}
@@ -120,9 +120,9 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 	}
 
 	public abstract status(): Promise<ServiceStatusObject>;
-	protected abstract toOutput(value: HostEntry): Output;
-	protected abstract fromOutput(value: Output): HostEntry | undefined;
+	protected abstract toOutput(value: NssEntry): Output;
+	protected abstract fromOutput(value: Output): NssEntry | undefined;
 	protected abstract storeOutput(value: Output[]): Promise<void>;
 	protected abstract loadOutput(): Promise<Output[]>;
-	protected abstract verifyWrite(value: HostEntry): Promise<boolean>;
+	protected abstract verifyWrite(value: NssEntry): Promise<boolean>;
 }

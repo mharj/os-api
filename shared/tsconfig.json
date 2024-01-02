@@ -18,12 +18,14 @@
 		"inlineSources": true,
 		"inlineSourceMap": true,
 		"forceConsistentCasingInFileNames": true,
+		"noUncheckedIndexedAccess": true,
 		"noImplicitReturns": true,
 		"noImplicitThis": true,
 		"noImplicitAny": true,
 		"importHelpers": true,
 		"strictNullChecks": true,
 		"noUnusedLocals": true,
+		"strict": true
 	},
 	"include": [
 		"./src/**/*"

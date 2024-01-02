@@ -1,3 +1,4 @@
+/* eslint-disable sort-keys */
 import {z} from 'zod';
 
 export const passwdEntrySchema = z.object({

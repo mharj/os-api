@@ -1,5 +1,6 @@
 /* eslint-disable sort-keys */
 import {passwdEntrySchema, PasswordEntry} from '../types/v1/passwdEntry';
+import {getErrorStr} from './zodError';
 import {ILoggerLike} from '@avanio/logger-like';
 import {isComment} from './common';
 
@@ -12,9 +13,18 @@ export function parsePasswdLine(line: string, logger?: ILoggerLike): PasswordEnt
 		return undefined;
 	}
 	const [username, password, uid, gid, gecos, home, shell] = input.split(':');
-	const status = passwdEntrySchema.safeParse({username, password, uid: parseInt(uid, 10), gid: parseInt(gid, 10), gecos, home, shell});
+	const rawData = {
+		username,
+		password,
+		uid: uid !== undefined && parseInt(uid, 10),
+		gid: gid !== undefined && parseInt(gid, 10),
+		gecos,
+		home,
+		shell,
+	};
+	const status = passwdEntrySchema.safeParse(rawData);
 	if (!status.success) {
-		logger?.info(`Invalid passwd line: ${input}`);
+		logger?.info(`Invalid passwd line: ${getErrorStr(status, rawData)}`);
 		return undefined;
 	}
 	return status.data;

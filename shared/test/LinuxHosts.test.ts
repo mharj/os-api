@@ -80,9 +80,15 @@ describe('LinuxHosts', () => {
 		expect(currentEntry).to.be.undefined;
 	});
 	it('should throw error on broken IP address', async () => {
-		await expect(testClass.add(brokenIpEntry)).to.be.eventually.rejectedWith(TypeError, `Invalid IP address value: ${brokenIpEntry.address}`);
+		await expect(testClass.add(brokenIpEntry)).to.be.eventually.rejectedWith(
+			TypeError,
+			`Invalid hosts entry: "address" Invalid IP address. ${JSON.stringify(brokenIpEntry)}`,
+		);
 	});
 	it('should throw error on broken hostname', async () => {
-		await expect(testClass.add(brokenHostnameEntry)).to.be.eventually.rejectedWith(TypeError, `Invalid hostname value: ${brokenHostnameEntry.hostname}`);
+		await expect(testClass.add(brokenHostnameEntry)).to.be.eventually.rejectedWith(
+			TypeError,
+			`Invalid hosts entry: "hostname" Invalid hostname. ${JSON.stringify(brokenHostnameEntry)}`,
+		);
 	});
 });

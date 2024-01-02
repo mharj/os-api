@@ -5,7 +5,7 @@ import {ServiceStatusObject} from '../interfaces/ServiceStatus';
 
 export abstract class AbstractLinuxShadow<Output = string> implements ICommonApiV1<ShadowEntry, ShadowFileEntry>, ApiServiceV1 {
 	abstract name: string;
-	public readonly version: 1;
+	public readonly version = 1;
 
 	/**
 	 * list all entries
@@ -22,7 +22,8 @@ export abstract class AbstractLinuxShadow<Output = string> implements ICommonApi
 		await this.assertOnline();
 		const data = await this.loadOutput();
 		// read value from current data and check if it's same as value
-		const entry = data[value.line] ? this.fromOutput(data[value.line]) : undefined;
+		const currentLine = data[value.line];
+		const entry = currentLine ? this.fromOutput(currentLine) : undefined;
 		if (this.isSameEntry(value, entry)) {
 			data.splice(value.line, 1);
 			await this.storeOutput(data);
@@ -62,7 +63,8 @@ export abstract class AbstractLinuxShadow<Output = string> implements ICommonApi
 		await this.assertOnline();
 		this.validateEntry(replace);
 		const data = await this.loadOutput();
-		const entry = data[current.line] ? this.fromOutput(data[current.line]) : undefined;
+		const currentLine = data[current.line];
+		const entry = currentLine ? this.fromOutput(currentLine) : undefined;
 		if (this.isSameEntry(current, entry)) {
 			data[current.line] = this.toOutput(replace);
 			await this.storeOutput(data);

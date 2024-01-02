@@ -57,8 +57,18 @@ const brokenHostTest: TestBrokenValue[] = [
 	{input: '# some comments here', output: undefined, infoCount: 0, infoMessages: []},
 	{input: '# 127.0.0.1	localhost # some comments are here', output: undefined, infoCount: 0, infoMessages: []},
 	{input: '', output: undefined, infoCount: 0, infoMessages: []},
-	{input: 'not.ip.value.here    localhost', output: undefined, infoCount: 1, infoMessages: ['Invalid IP address: not.ip.value.here']},
-	{input: '127.0.0.1	&!localhost', output: undefined, infoCount: 1, infoMessages: ['Invalid hostname: &!localhost']},
+	{
+		input: 'not.ip.value.here    localhost',
+		output: undefined,
+		infoCount: 1,
+		infoMessages: ['Invalid hosts line: "address" Invalid IP address. {"address":"not.ip.value.here","aliases":[],"hostname":"localhost"}'],
+	},
+	{
+		input: '127.0.0.1	&!localhost',
+		output: undefined,
+		infoCount: 1,
+		infoMessages: ['Invalid hosts line: "hostname" Invalid hostname. {"address":"127.0.0.1","aliases":[],"hostname":"&!localhost"}'],
+	},
 ];
 
 describe('parseHostLine', () => {
