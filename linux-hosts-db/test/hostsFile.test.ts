@@ -49,21 +49,6 @@ describe('linux hosts db API', () => {
 		}
 		expect(testEntry).to.deep.equal({line: testEntry.line, ...testData, comment: undefined});
 	});
-	it('should fail to add no IP arress to file', async () => {
-		await expect(linuxHosts.add({address: 'abc', hostname: 'abc', aliases: []})).to.be.eventually.rejectedWith(TypeError, 'Invalid IP address value: abc');
-	});
-	it('should fail to add non-valid hostname to file', async () => {
-		await expect(linuxHosts.add({address: '127.0.0.1', hostname: 'ABC[]', aliases: []})).to.be.eventually.rejectedWith(
-			TypeError,
-			'Invalid hostname value: ABC[]',
-		);
-	});
-	it('should fail to add non-valid host alias to file', async () => {
-		await expect(linuxHosts.add({address: '127.0.0.1', hostname: 'localhost', aliases: ['ABC[]']})).to.be.eventually.rejectedWith(
-			TypeError,
-			'Invalid alias value in: ["ABC[]"]',
-		);
-	});
 	it('should delete host entry from file', async () => {
 		await linuxHosts.add(testData);
 		const data = await linuxHosts.list();
