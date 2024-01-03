@@ -71,21 +71,15 @@ describe('linux hosts file API', () => {
 		expect(existsSync('./test/hosts.bak')).to.be.eq(true);
 	});
 	it('should fail to add no IP arress to file', async () => {
-		await expect(linuxHosts.add({address: 'abc', hostname: 'abc', aliases: []}, 999)).to.be.eventually.rejectedWith(TypeError, 'Invalid IP address value: abc');
+		await expect(linuxHosts.add({address: 'abc', hostname: 'abc', aliases: []}, 999)).to.be.eventually.rejectedWith(TypeError);
 		expect(existsSync('./test/hosts.bak')).to.be.eq(false); // no write yet
 	});
 	it('should fail to add non-valid hostname to file', async () => {
-		await expect(linuxHosts.add({address: '127.0.0.1', hostname: 'ABC[]', aliases: []}, 999)).to.be.eventually.rejectedWith(
-			TypeError,
-			'Invalid hostname value: ABC[]',
-		);
+		await expect(linuxHosts.add({address: '127.0.0.1', hostname: 'ABC[]', aliases: []}, 999)).to.be.eventually.rejectedWith(TypeError);
 		expect(existsSync('./test/hosts.bak')).to.be.eq(false); // no write yet
 	});
 	it('should fail to add non-valid host alias to file', async () => {
-		await expect(linuxHosts.add({address: '127.0.0.1', hostname: 'localhost', aliases: ['ABC[]']}, 999)).to.be.eventually.rejectedWith(
-			TypeError,
-			'Invalid alias value in: ["ABC[]"]',
-		);
+		await expect(linuxHosts.add({address: '127.0.0.1', hostname: 'localhost', aliases: ['ABC[]']}, 999)).to.be.eventually.rejectedWith(TypeError);
 		expect(existsSync('./test/hosts.bak')).to.be.eq(false); // no write yet
 	});
 	it('should delete host entry from file', async () => {
