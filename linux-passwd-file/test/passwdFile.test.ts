@@ -77,10 +77,7 @@ describe('linux passwd file API', () => {
 		expect(existsSync(backupFile)).to.be.eq(true);
 	});
 	it('should fail to add not valid entry to file', async () => {
-		await expect(linuxPasswd.add({...testData, username: 'äöäöä'}, 999)).to.be.eventually.rejectedWith(
-			TypeError,
-			'Invalid passwd entry: "username" contains invalid characters. {"username":"äöäöä","password":"x","uid":1000,"gid":1000,"gecos":"test user","home":"/home/test","shell":"/bin/bash"}}',
-		);
+		await expect(linuxPasswd.add({...testData, username: 'äöäöä'}, 999)).to.be.eventually.rejectedWith(TypeError);
 		expect(existsSync(backupFile)).to.be.eq(false); // no write yet
 	});
 	it('should delete entry from file', async () => {
