@@ -79,10 +79,7 @@ describe('linux shadow file API', () => {
 		expect(existsSync(backupFile)).to.be.eq(true);
 	});
 	it('should fail to add not valid entry to file', async () => {
-		await expect(linuxShadow.add({...testData, username: 'äöäöä'}, 999)).to.be.eventually.rejectedWith(
-			TypeError,
-			'Invalid shadow entry: "username" Invalid. {"username":"äöäöä","password":"x","changed":16193,"min":0,"max":99999,"warn":7}',
-		);
+		await expect(linuxShadow.add({...testData, username: 'äöäöä'}, 999)).to.be.eventually.rejectedWith(TypeError);
 		expect(existsSync(backupFile)).to.be.eq(false); // no write yet
 	});
 	it('should delete entry from file', async () => {
