@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "shared"
+		},
+		{
+			"path": "linux-hosts-db"
+		},
+		{
+			"path": "linux-hosts-file"
+		},
+		{
+			"path": "linux-nsswitch-file"
+		},
+		{
+			"path": "linux-passwd-db"
+		},
+		{
+			"path": "linux-passwd-file"
+		},
+		{
+			"path": "linux-shadow-db"
+		},
+		{
+			"path": "linux-shadow-file"
+		},
+		{
+			"path": "linux-utils"
+		},
+		{
+			"path": ".github"
+		}
+	],
+	"settings": {}
+}
