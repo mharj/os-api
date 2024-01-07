@@ -1,6 +1,11 @@
-export interface ICommonApiV1<Entry, FileEntry> {
-	list(): Promise<FileEntry[]>;
-	delete(value: FileEntry): Promise<boolean>;
-	add(value: Entry): Promise<boolean>;
-	replace(current: FileEntry, replace: Entry): Promise<boolean>;
+/**
+ * Common API v1 interface for Linux NSS databases
+ * @template InputEntry - entry type for input
+ * @template OutputEntry - entry type for output, defaults to InputEntry
+ */
+export interface ICommonApiV1<InputEntry, OutputEntry = InputEntry> {
+	list(): Promise<OutputEntry[]>;
+	delete(value: OutputEntry): Promise<boolean>;
+	add(value: InputEntry): Promise<boolean>;
+	replace(current: OutputEntry, replace: InputEntry): Promise<boolean>;
 }

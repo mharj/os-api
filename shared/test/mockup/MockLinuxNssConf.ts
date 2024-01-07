@@ -1,5 +1,4 @@
-import {nssConfLineBuilder, NssEntry, parseNssConfLine, ServiceStatusObject} from '../../src';
-import {AbstractLinuxNss} from '../../src/v1/AbstractLinuxNss';
+import {AbstractLinuxFileDatabase, nssConfLineBuilder, NssEntry, NssFileEntry, parseNssConfLine, ServiceStatusObject, validateLinuxNssEntry} from '../../src';
 import {ILoggerLike} from '@avanio/logger-like';
 
 export function buildOutput(value: NssEntry): string {
@@ -10,7 +9,7 @@ export function buildOutput(value: NssEntry): string {
 	return data;
 }
 
-export class MockLinuxNssConf extends AbstractLinuxNss {
+export class MockLinuxNssConf extends AbstractLinuxFileDatabase<NssEntry, NssFileEntry> {
 	public name = 'MockLinuxNssConf';
 	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
@@ -65,5 +64,16 @@ export class MockLinuxNssConf extends AbstractLinuxNss {
 
 	protected verifyWrite(value: NssEntry): Promise<boolean> {
 		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	}
+
+	protected isSameEntry(a: NssEntry | NssFileEntry, b: NssEntry | NssFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.database === b.database;
+	}
+
+	protected validateEntry(entry: NssEntry): void {
+		validateLinuxNssEntry(entry);
 	}
 }

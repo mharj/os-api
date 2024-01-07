@@ -1,4 +1,13 @@
-import {AbstractLinuxHosts, HostEntry, hostLineBuilder, isValidLine, parseHostLine, ServiceStatusObject} from '../../src/';
+import {
+	AbstractLinuxFileDatabase,
+	HostEntry,
+	HostFileEntry,
+	hostLineBuilder,
+	isValidLine,
+	parseHostLine,
+	ServiceStatusObject,
+	validateLinuxHostsEntry,
+} from '../../src/';
 import type {ILoggerLike} from '@avanio/logger-like';
 
 export function buildOutput(value: HostEntry): string {
@@ -9,7 +18,7 @@ export function buildOutput(value: HostEntry): string {
 	return data;
 }
 
-export class MockLinuxHosts extends AbstractLinuxHosts {
+export class MockLinuxHosts extends AbstractLinuxFileDatabase<HostEntry, HostFileEntry> {
 	public name = 'MockLinuxHosts';
 	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
@@ -55,5 +64,16 @@ export class MockLinuxHosts extends AbstractLinuxHosts {
 
 	protected verifyWrite(value: HostEntry): Promise<boolean> {
 		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	}
+
+	protected isSameEntry(a: HostEntry | HostFileEntry, b: HostEntry | HostFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.hostname === b.hostname && a.address === b.address;
+	}
+
+	protected validateEntry(entry: HostEntry): void {
+		validateLinuxHostsEntry(entry);
 	}
 }

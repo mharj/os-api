@@ -1,24 +1,29 @@
-import {HostEntry, HostFileEntry, validateLinuxHostsEntry} from '../types/v1/hostEntry';
 import {ApiServiceV1} from '../interfaces/service';
 import {ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {ServiceStatusObject} from '../interfaces/ServiceStatus';
 
-export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV1<HostEntry, HostFileEntry>, ApiServiceV1 {
+/**
+ * Abstract class for file based Linux NSS databases
+ * - uses line numbers as location identifier to help checking changes on file based data.
+ */
+export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unknown>, FileEntry extends Entry & {line: number}, Output = string>
+	implements ICommonApiV1<Entry, FileEntry>, ApiServiceV1
+{
 	abstract name: string;
 	public readonly version = 1;
 
 	/**
 	 * list all entries from hosts
 	 */
-	public async list(): Promise<HostFileEntry[]> {
+	public async list(): Promise<FileEntry[]> {
 		await this.assertOnline();
 		return this.dataToFileEntry(await this.loadOutput());
 	}
 
 	/**
-	 * delete entry from hosts
+	 * delete entry
 	 */
-	public async delete(value: HostFileEntry): Promise<boolean> {
+	public async delete(value: FileEntry): Promise<boolean> {
 		await this.assertOnline();
 		const data = await this.loadOutput();
 		// read value from current data and check if it's same as value
@@ -38,9 +43,9 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 	}
 
 	/**
-	 * add new entry to hosts
+	 * add new entry
 	 */
-	public async add(value: HostEntry, index?: number): Promise<boolean> {
+	public async add(value: Entry, index?: number): Promise<boolean> {
 		await this.assertOnline();
 		this.validateEntry(value);
 		const lines = await this.loadOutput();
@@ -57,9 +62,9 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 	}
 
 	/**
-	 * replace current hosts entry with new one
+	 * replace current entry with new one
 	 */
-	public async replace(current: HostFileEntry, replace: HostEntry): Promise<boolean> {
+	public async replace(current: FileEntry, replace: Entry): Promise<boolean> {
 		await this.assertOnline();
 		this.validateEntry(replace);
 		const data = await this.loadOutput();
@@ -78,6 +83,16 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 		throw new Error(`${this.name}: Current entry does not exist`);
 	}
 
+	private dataToFileEntry(data: Output[]): FileEntry[] {
+		return data.reduce<FileEntry[]>((acc, line, index) => {
+			const entry = this.fromOutput(line);
+			if (entry) {
+				acc.push({...entry, line: index} as FileEntry);
+			}
+			return acc;
+		}, []);
+	}
+
 	/**
 	 * list raw stored Output type data
 	 */
@@ -85,29 +100,11 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 		return this.loadOutput();
 	}
 
-	private validateEntry(entry: HostEntry): void {
-		validateLinuxHostsEntry(entry);
-	}
-
-	private dataToFileEntry(data: Output[]): HostFileEntry[] {
-		return data.reduce<HostFileEntry[]>((acc, line, index) => {
-			const entry = this.fromOutput(line);
-			if (entry) {
-				acc.push({...entry, line: index});
+	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry) => boolean {
+		return (b: Entry | FileEntry) => {
+			if (!b) {
+				return false;
 			}
-			return acc;
-		}, []);
-	}
-
-	private isSameEntry(a: HostEntry, b: HostEntry | undefined) {
-		if (!b) {
-			return false;
-		}
-		return a.address === b.address && a.hostname === b.hostname;
-	}
-
-	private isSameEntryCallback(a: HostEntry): (b: HostEntry) => boolean {
-		return (b: HostEntry) => {
 			return this.isSameEntry(a, b);
 		};
 	}
@@ -119,10 +116,16 @@ export abstract class AbstractLinuxHosts<Output = string> implements ICommonApiV
 		}
 	}
 
+	/**
+	 * validate entry object data before writing (add/replace)
+	 * @throws Error if invalid
+	 */
+	protected abstract validateEntry(entry: Entry): void;
+	protected abstract isSameEntry(a: Entry | FileEntry, b: Entry | FileEntry | undefined): boolean;
 	public abstract status(): Promise<ServiceStatusObject>;
-	protected abstract toOutput(value: HostEntry): Output;
-	protected abstract fromOutput(value: Output): HostEntry | undefined;
+	protected abstract toOutput(value: Entry): Output;
+	protected abstract fromOutput(value: Output): Entry | undefined;
 	protected abstract storeOutput(value: Output[]): Promise<void>;
 	protected abstract loadOutput(): Promise<Output[]>;
-	protected abstract verifyWrite(value: HostEntry): Promise<boolean>;
+	protected abstract verifyWrite(value: Entry): Promise<boolean>;
 }

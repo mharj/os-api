@@ -1,5 +1,4 @@
-import {ServiceStatusObject, ShadowEntry, shadowLineBuilder} from '../../src';
-import {AbstractLinuxShadow} from '../../src/v1/AbstractLinuxShadow';
+import {AbstractLinuxFileDatabase, ServiceStatusObject, ShadowEntry, ShadowFileEntry, shadowLineBuilder, validateLinuxShadowEntry} from '../../src';
 import {ILoggerLike} from '@avanio/logger-like';
 import {parseShadowLine} from '../../src/lib/shadowLineParser';
 
@@ -11,7 +10,7 @@ export function buildOutput(value: ShadowEntry): string {
 	return data;
 }
 
-export class MockLinuxShadow extends AbstractLinuxShadow {
+export class MockLinuxShadow extends AbstractLinuxFileDatabase<ShadowEntry, ShadowFileEntry> {
 	public name = 'MockLinuxShadow';
 	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
@@ -30,6 +29,17 @@ export class MockLinuxShadow extends AbstractLinuxShadow {
 
 	public status(): Promise<ServiceStatusObject> {
 		return Promise.resolve(this._state);
+	}
+
+	protected isSameEntry(a: ShadowEntry | ShadowFileEntry, b: ShadowEntry | ShadowFileEntry | undefined) {
+		if (!b) {
+			return false;
+		}
+		return a.username === b.username;
+	}
+
+	protected validateEntry(entry: ShadowEntry): void {
+		validateLinuxShadowEntry(entry);
 	}
 
 	protected toOutput(value: ShadowEntry): string {

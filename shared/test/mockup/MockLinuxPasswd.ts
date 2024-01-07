@@ -1,5 +1,4 @@
-import {passwdLineBuilder, PasswordEntry, ServiceStatusObject} from '../../src';
-import {AbstractLinuxPasswd} from '../../src/v1/AbstractLinuxPasswd';
+import {AbstractLinuxFileDatabase, passwdLineBuilder, PasswordEntry, PasswordFileEntry, ServiceStatusObject, validateLinuxPasswordEntry} from '../../src';
 import {ILoggerLike} from '@avanio/logger-like';
 import {parsePasswdLine} from '../../src/lib/passwdLineParser';
 
@@ -11,7 +10,7 @@ export function buildOutput(value: PasswordEntry): string {
 	return data;
 }
 
-export class MockLinuxPasswd extends AbstractLinuxPasswd {
+export class MockLinuxPasswd extends AbstractLinuxFileDatabase<PasswordEntry, PasswordFileEntry> {
 	public name = 'MockLinuxPasswd';
 	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
@@ -51,5 +50,16 @@ export class MockLinuxPasswd extends AbstractLinuxPasswd {
 
 	protected verifyWrite(value: PasswordEntry): Promise<boolean> {
 		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	}
+
+	protected isSameEntry(a: PasswordEntry | PasswordFileEntry, b: PasswordEntry | PasswordFileEntry | undefined) {
+		if (!b) {
+			return false;
+		}
+		return a.username === b.username;
+	}
+
+	protected validateEntry(entry: PasswordEntry): void {
+		validateLinuxPasswordEntry(entry);
 	}
 }
