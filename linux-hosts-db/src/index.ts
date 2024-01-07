@@ -1,6 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import {AbstractLinuxHosts, HostEntry, IErrorLike, isValidLine, parseHostLine, ServiceStatusObject} from '@avanio/os-api-shared';
+import {
+	AbstractLinuxFileDatabase,
+	HostEntry,
+	HostFileEntry,
+	IErrorLike,
+	isValidLine,
+	parseHostLine,
+	ServiceStatusObject,
+	validateLinuxHostsEntry,
+} from '@avanio/os-api-shared';
 import {access, copyFile, execFilePromise, ILinuxSudoOptions} from '@avanio/os-api-linux-utils';
 import {ILoggerLike} from '@avanio/logger-like';
 
@@ -18,18 +27,25 @@ type LinuxHostsDbProps = {
 	makedb?: string;
 	/**
 	 * Create a backup of the database file before writing
+	 * @default false
 	 */
 	backup?: boolean;
+	/**
+	 * Backup file path
+	 * @default '/var/lib/misc/hosts.db.bak'
+	 */
+	backupFile?: string;
 };
 
 const initialProps: Required<LinuxHostsDbProps> & ILinuxSudoOptions = {
 	backup: false,
+	backupFile: '/var/lib/misc/hosts.db.bak',
 	file: '/var/lib/misc/hosts.db',
 	makedb: '/usr/bin/makedb',
 	sudo: false,
 };
 
-export class LinuxHostsDb extends AbstractLinuxHosts {
+export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileEntry> {
 	public readonly name = 'LinuxHostsDb';
 	private logger?: ILoggerLike;
 	public props: Required<LinuxHostsDbProps> & ILinuxSudoOptions;
@@ -83,9 +99,8 @@ export class LinuxHostsDb extends AbstractLinuxHosts {
 
 	protected async storeOutput(value: string[]): Promise<void> {
 		if (this.props.backup) {
-			const backupFile = `${this.props.file}.bak`;
-			this.logger?.debug('LinuxHostsDb::backup', backupFile);
-			await copyFile(this.props.file, backupFile, undefined, this.props);
+			this.logger?.debug('LinuxHostsDb::backup', this.props.backupFile);
+			await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
 		}
 		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
 		this.logger?.debug('LinuxHostsDb::storeOutput:', cmd, args);
@@ -97,6 +112,17 @@ export class LinuxHostsDb extends AbstractLinuxHosts {
 		this.logger?.debug('LinuxHostsDb::loadOutput:', cmd, args);
 		const data = await execFilePromise(cmd, args);
 		return data.toString().split('\n');
+	}
+
+	protected isSameEntry(a: HostEntry | HostFileEntry, b: HostEntry | HostFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.hostname === b.hostname && a.address === b.address;
+	}
+
+	protected validateEntry(entry: HostEntry): void {
+		validateLinuxHostsEntry(entry);
 	}
 
 	private buildExecParams(args: string[]): {cmd: string; args: string[]} {
