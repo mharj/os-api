@@ -37,22 +37,51 @@ type LinuxHostsDbProps = {
 	backupFile?: string;
 };
 
-const initialProps: Required<LinuxHostsDbProps> & ILinuxSudoOptions = {
+const initialProps = {
 	backup: false,
 	backupFile: '/var/lib/misc/hosts.db.bak',
 	file: '/var/lib/misc/hosts.db',
 	makedb: '/usr/bin/makedb',
 	sudo: false,
-};
+} satisfies Required<LinuxHostsDbProps> & ILinuxSudoOptions;
 
 export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileEntry> {
 	public readonly name = 'LinuxHostsDb';
 	private logger?: ILoggerLike;
 	public props: Required<LinuxHostsDbProps> & ILinuxSudoOptions;
-	constructor(props: LinuxHostsDbProps & ILinuxSudoOptions, logger?: ILoggerLike) {
+	constructor(props: LinuxHostsDbProps & ILinuxSudoOptions = {}, logger?: ILoggerLike) {
 		super();
 		this.props = {...initialProps, ...props};
 		this.logger = logger;
+	}
+
+	/**
+	 * Add new entry to hosts, overriden to handle backup restore
+	 * @param value - HostEntry
+	 * @param index - optional index to insert entry at
+	 * @returns promise that resolves to true if write was successful
+	 */
+	public override async add(value: HostEntry, index?: number): Promise<boolean> {
+		return this.handleRestore(super.add(value, index));
+	}
+
+	/**
+	 * Replace current hosts entry with new one, overriden to handle backup restore
+	 * @param current - HostFileEntry
+	 * @param replace - HostEntry
+	 * @returns promise that resolves to true if write was successful
+	 */
+	public override async replace(current: HostFileEntry, replace: HostEntry): Promise<boolean> {
+		return this.handleRestore(super.replace(current, replace));
+	}
+
+	/**
+	 * Delete hosts entry, overriden to handle backup restore
+	 * @param value - HostFileEntry
+	 * @returns promise that resolves to true if write was successful
+	 */
+	public override async delete(value: HostFileEntry): Promise<boolean> {
+		return this.handleRestore(super.delete(value));
 	}
 
 	public async status(): Promise<ServiceStatusObject> {
@@ -99,17 +128,17 @@ export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileE
 
 	protected async storeOutput(value: string[]): Promise<void> {
 		if (this.props.backup) {
-			this.logger?.debug('LinuxHostsDb::backup', this.props.backupFile);
+			this.logger?.debug(`${this.name}::backup`, this.props.backupFile);
 			await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
 		}
 		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
-		this.logger?.debug('LinuxHostsDb::storeOutput:', cmd, args);
+		this.logger?.debug(`${this.name}::storeOutput:`, cmd, args);
 		await execFilePromise(cmd, args, Buffer.from(value.join('\n')));
 	}
 
 	protected async loadOutput(): Promise<string[]> {
 		const {cmd, args} = this.buildExecParams(['--quiet', '-u', path.resolve(this.props.file)]);
-		this.logger?.debug('LinuxHostsDb::loadOutput:', cmd, args);
+		this.logger?.debug(`${this.name}::loadOutput:`, cmd, args);
 		const data = await execFilePromise(cmd, args);
 		return data.toString().split('\n');
 	}
@@ -135,5 +164,19 @@ export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileE
 			throw new Error('No command found');
 		}
 		return {cmd, args: newArgs};
+	}
+
+	/**
+	 * if write fails and backup is enabled, restores backup file
+	 * @param isWriteOk - promise that resolves to true if write was successful
+	 * @returns promise that resolves to true if write was successful
+	 */
+	private async handleRestore(isWriteOk: Promise<boolean>): Promise<boolean> {
+		const status = await isWriteOk;
+		if (!status && this.props.backup) {
+			this.logger?.warn(`${this.name}: Write failed, restoring backup file ${this.props.backupFile}`);
+			await copyFile(this.props.backupFile, this.props.file, undefined, this.props);
+		}
+		return status;
 	}
 }
