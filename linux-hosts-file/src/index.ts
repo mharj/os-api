@@ -1,6 +1,15 @@
 import * as fs from 'fs';
-import {AbstractLinuxHosts, HostEntry, HostFileEntry, IErrorLike, isValidLine, parseHostLine, ServiceStatusObject} from '@avanio/os-api-shared';
-import {access, copyFile, ILinuxSudoOptions, readFile, unlink, writeFile} from '@avanio/os-api-linux-utils';
+import {
+	AbstractLinuxFileDatabase,
+	HostEntry,
+	HostFileEntry,
+	IErrorLike,
+	isValidLine,
+	parseHostLine,
+	ServiceStatusObject,
+	validateLinuxHostsEntry,
+} from '@avanio/os-api-shared';
+import {access, copyFile, ILinuxSudoOptions, readFile, writeFile} from '@avanio/os-api-linux-utils';
 import {ILoggerLike} from '@avanio/logger-like';
 
 type LinuxHostsProps = {
@@ -19,12 +28,12 @@ const initialProps = {
 	sudo: false,
 } satisfies Required<LinuxHostsProps> & ILinuxSudoOptions;
 
-export class LinuxHosts extends AbstractLinuxHosts {
+export class LinuxHosts extends AbstractLinuxFileDatabase<HostEntry, HostFileEntry> {
 	public readonly name = 'LinuxHostsFile';
 	public props: Required<LinuxHostsProps> & ILinuxSudoOptions;
 	private logger?: ILoggerLike;
 
-	constructor(props: LinuxHostsProps & ILinuxSudoOptions, logger?: ILoggerLike) {
+	constructor(props: LinuxHostsProps & ILinuxSudoOptions = {}, logger?: ILoggerLike) {
 		super();
 		this.props = {...initialProps, ...props};
 		this.logger = logger;
@@ -48,6 +57,15 @@ export class LinuxHosts extends AbstractLinuxHosts {
 	 */
 	public override async replace(current: HostFileEntry, replace: HostEntry): Promise<boolean> {
 		return this.handleRestore(super.replace(current, replace));
+	}
+
+	/**
+	 * Delete hosts entry, overriden to handle backup restore
+	 * @param value - HostFileEntry
+	 * @returns promise that resolves to true if write was successful
+	 */
+	public override async delete(value: HostFileEntry): Promise<boolean> {
+		return this.handleRestore(super.delete(value));
 	}
 
 	public async status(): Promise<ServiceStatusObject> {
@@ -84,6 +102,7 @@ export class LinuxHosts extends AbstractLinuxHosts {
 
 	protected async storeOutput(value: string[]): Promise<void> {
 		if (this.props.backup) {
+			this.logger?.debug(`${this.name}::backup`, this.props.backupFile);
 			await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
 		}
 		return writeFile(this.props.file, Buffer.from(value.join('\n')), this.props);
@@ -98,6 +117,17 @@ export class LinuxHosts extends AbstractLinuxHosts {
 		return (await this.listRaw()).some((line) => line === currentLine);
 	}
 
+	protected isSameEntry(a: HostEntry | HostFileEntry, b: HostEntry | HostFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.hostname === b.hostname && a.address === b.address;
+	}
+
+	protected validateEntry(entry: HostEntry): void {
+		validateLinuxHostsEntry(entry);
+	}
+
 	/**
 	 * if write fails and backup is enabled, restores backup file
 	 * @param isWriteOk - promise that resolves to true if write was successful
@@ -106,9 +136,8 @@ export class LinuxHosts extends AbstractLinuxHosts {
 	private async handleRestore(isWriteOk: Promise<boolean>): Promise<boolean> {
 		const status = await isWriteOk;
 		if (!status && this.props.backup) {
-			this.logger?.warn(`Write failed, restoring backup file ${this.props.backupFile}`);
+			this.logger?.warn(`${this.name}: Write failed, restoring backup file ${this.props.backupFile}`);
 			await copyFile(this.props.backupFile, this.props.file, undefined, this.props);
-			await unlink(this.props.backupFile, this.props);
 		}
 		return status;
 	}
