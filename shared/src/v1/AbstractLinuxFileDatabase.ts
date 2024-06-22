@@ -11,6 +11,7 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 {
 	abstract name: string;
 	public readonly version = 1;
+	private currentCount = 0;
 
 	/**
 	 * list all entries from hosts
@@ -107,7 +108,8 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 	 */
 	public async count(): Promise<number> {
 		await this.assertOnline();
-		return (await this.listRaw()).length;
+		this.currentCount = (await this.listRaw()).length;
+		return this.currentCount;
 	}
 
 	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry) => boolean {
@@ -124,6 +126,14 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 		if (res.status !== 'online') {
 			throw new Error(`${this.name} is not online: ${res.status}`);
 		}
+	}
+
+	public toJSON() {
+		return {
+			name: this.name,
+			version: this.version,
+			count: this.count(),
+		};
 	}
 
 	/**
