@@ -35,13 +35,13 @@ describe('linux utils', () => {
 	it('should change permissions', async () => {
 		await chmod('./test.txt.backup', 0o444, {sudo: true});
 		const linuxStats = await stat('./test.txt.backup', {sudo: true});
-		expect(linuxStats.mode).to.be.eq(0o100444);
+		expect(linuxStats.mode).to.be.eq(0o100444n);
 	});
 	it('should change owner and group', async () => {
 		await chown('./test.txt.backup', 65534, 65534, {sudo: true});
 		const linuxStats = await stat('./test.txt.backup', {sudo: true});
-		expect(linuxStats.uid).to.be.eq(65534);
-		expect(linuxStats.gid).to.be.eq(65534);
+		expect(linuxStats.uid).to.be.eq(65534n);
+		expect(linuxStats.gid).to.be.eq(65534n);
 	});
 	it('should rename text file', async () => {
 		await copyFile('./test.txt', './test.txt.rename1', undefined, {sudo: true});

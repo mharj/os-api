@@ -9,3 +9,5 @@ export * from './stat';
 export * from './unlink';
 export * from './writeFile';
 export * from './rename';
+export * from './posixAccountId';
+export * from './posixGroupId';

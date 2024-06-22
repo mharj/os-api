@@ -2,6 +2,7 @@
 *.js
 *.d.ts
 node_modules
+dist
 !src/**/*
 !test/**/*
 !.devcontainer/**/*

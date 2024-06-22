@@ -1,5 +1,5 @@
 import * as fsPromise from 'fs/promises';
-import {PathLike, Stats} from 'node:fs';
+import {BigIntStats, PathLike} from 'node:fs';
 import {ILinuxSudoOptions} from './lib/sudoUtils';
 import {statSudo} from './lib/statSudo';
 
@@ -7,13 +7,13 @@ import {statSudo} from './lib/statSudo';
  * Stat a file or directory, optionally using sudo
  * @param {PathLike} path - The file or directory to stat
  * @param {ILinuxSudoOptions} options - Options for sudo
- * @returns {Promise<Stats>} - Promise of the file stats
+ * @returns {Promise<BigIntStats>} - Promise of the file stats
  * @example
- * const stats: Stats = await stat('./test.txt', {sudo: true});
+ * const stats: BigIntStats = await stat('./test.txt', {sudo: true});
  */
-export function stat(path: PathLike, options: ILinuxSudoOptions = {sudo: false}): Promise<Stats> {
+export function stat(path: PathLike, options: ILinuxSudoOptions = {sudo: false}): Promise<BigIntStats> {
 	if (options.sudo) {
 		return statSudo(path, options);
 	}
-	return fsPromise.stat(path);
+	return fsPromise.stat(path, {bigint: true});
 }
