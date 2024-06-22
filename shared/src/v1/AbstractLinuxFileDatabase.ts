@@ -11,7 +11,6 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 {
 	abstract name: string;
 	public readonly version = 1;
-	private currentCount = 0;
 
 	/**
 	 * list all entries from hosts
@@ -108,8 +107,7 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 	 */
 	public async count(): Promise<number> {
 		await this.assertOnline();
-		this.currentCount = (await this.listRaw()).length;
-		return this.currentCount;
+		return (await this.list()).length;
 	}
 
 	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry) => boolean {
