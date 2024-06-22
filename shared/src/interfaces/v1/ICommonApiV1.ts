@@ -8,4 +8,5 @@ export interface ICommonApiV1<InputEntry, OutputEntry = InputEntry> {
 	delete(value: OutputEntry): Promise<boolean>;
 	add(value: InputEntry): Promise<boolean>;
 	replace(current: OutputEntry, replace: InputEntry): Promise<boolean>;
+	count(): Promise<number>;
 }

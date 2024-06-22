@@ -100,6 +100,16 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 		return this.loadOutput();
 	}
 
+	/**
+	 * Get number of entries.
+	 *
+	 * Override this default method if you have a more efficient way to count entries (like LDAP, krb5, etc.)
+	 */
+	public async count(): Promise<number> {
+		await this.assertOnline();
+		return (await this.listRaw()).length;
+	}
+
 	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry) => boolean {
 		return (b: Entry | FileEntry) => {
 			if (!b) {
