@@ -2,18 +2,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
 	AbstractLinuxFileDatabase,
-	HostEntry,
-	HostFileEntry,
-	IErrorLike,
+	type HostEntry,
+	type HostFileEntry,
+	type IErrorLike,
+	type IFileBackupProps,
 	isValidLine,
 	parseHostLine,
-	ServiceStatusObject,
+	type ServiceStatusObject,
 	validateLinuxHostsEntry,
 } from '@avanio/os-api-shared';
-import {access, copyFile, execFilePromise, ILinuxSudoOptions} from '@avanio/os-api-linux-utils';
-import {ILoggerLike} from '@avanio/logger-like';
+import {access, copyFile, execFilePromise, type ILinuxSudoOptions} from '@avanio/os-api-linux-utils';
+import {type ILoggerLike} from '@avanio/logger-like';
 
-type LinuxHostsDbProps = {
+interface LinuxHostsDbProps extends Partial<IFileBackupProps> {
 	/**
 	 * NSS database file path
 	 *
@@ -25,17 +26,7 @@ type LinuxHostsDbProps = {
 	 * @default '/usr/bin/makedb'
 	 */
 	makedb?: string;
-	/**
-	 * Create a backup of the database file before writing
-	 * @default false
-	 */
-	backup?: boolean;
-	/**
-	 * Backup file path
-	 * @default '/var/lib/misc/hosts.db.bak'
-	 */
-	backupFile?: string;
-};
+}
 
 const initialProps = {
 	backup: false,

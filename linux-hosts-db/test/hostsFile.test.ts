@@ -6,7 +6,7 @@ import 'mocha';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import {copyFile, unlink} from 'fs/promises';
-import {HostEntry} from '@avanio/os-api-shared';
+import {type HostEntry} from '@avanio/os-api-shared';
 import {LinuxHostsDb} from '../src';
 
 const expect = chai.expect;
