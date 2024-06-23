@@ -1,4 +1,4 @@
-import {PasswordEntry} from '../types';
+import {type PasswordEntry} from '../types';
 
 export function passwdLineBuilder(entry: PasswordEntry): string {
 	const {username, password, uid, gid, gecos, home, shell} = entry;

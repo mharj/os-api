@@ -1,4 +1,4 @@
-import {ShadowEntry} from '../types/v1/shadowEntry';
+import {type ShadowEntry} from '../types/v1/shadowEntry';
 
 export function shadowLineBuilder(entry: ShadowEntry): string {
 	const {username, password, changed, min, max, warn, inactive, expire, reserved} = entry;

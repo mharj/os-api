@@ -1,4 +1,4 @@
-import {HostEntry, hostEntrySchema} from '../types/v1/hostEntry';
+import {type HostEntry, hostEntrySchema} from '../types/v1/hostEntry';
 import {getErrorStr} from './zodError';
 import type {ILoggerLike} from '@avanio/logger-like';
 import {isComment} from './common';
@@ -38,7 +38,7 @@ export function parseHostLine(line: string, logger?: ILoggerLike): HostEntry | u
 	const parts = entry.split(/\s+/);
 	const address = parts.shift();
 	const hostname = parts.shift();
-	const aliases = parts || [];
+	const aliases = parts;
 	const rawData = {address, aliases, comment, hostname};
 	const status = hostEntrySchema.safeParse(rawData);
 	if (!status.success) {

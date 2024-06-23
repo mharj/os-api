@@ -1,5 +1,13 @@
-import {AbstractLinuxFileDatabase, nssConfLineBuilder, NssEntry, NssFileEntry, parseNssConfLine, ServiceStatusObject, validateLinuxNssEntry} from '../../src';
-import {ILoggerLike} from '@avanio/logger-like';
+import {
+	AbstractLinuxFileDatabase,
+	nssConfLineBuilder,
+	type NssEntry,
+	type NssFileEntry,
+	parseNssConfLine,
+	type ServiceStatusObject,
+	validateLinuxNssEntry,
+} from '../../src';
+import {type ILoggerLike} from '@avanio/logger-like';
 
 export function buildOutput(value: NssEntry): string {
 	const data = nssConfLineBuilder(value);

@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys */
-import {ShadowEntry, shadowEntrySchema} from '../types/v1/shadowEntry';
+import {type ShadowEntry, shadowEntrySchema} from '../types/v1/shadowEntry';
 import {getErrorStr} from './zodError';
-import {ILoggerLike} from '@avanio/logger-like';
+import {type ILoggerLike} from '@avanio/logger-like';
 import {isComment} from './common';
 
 function stringIntOrUndefined(value: string): number | undefined {

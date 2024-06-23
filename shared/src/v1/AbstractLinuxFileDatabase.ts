@@ -1,6 +1,6 @@
-import {ApiServiceV1} from '../interfaces/service';
-import {ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
-import {ServiceStatusObject} from '../interfaces/ServiceStatus';
+import {type ApiServiceV1} from '../interfaces/service';
+import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
+import {type ServiceStatusObject} from '../interfaces/ServiceStatus';
 
 /**
  * Abstract class for file based Linux NSS databases
@@ -110,8 +110,8 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 		return (await this.list()).length;
 	}
 
-	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry) => boolean {
-		return (b: Entry | FileEntry) => {
+	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry | undefined) => boolean {
+		return (b: Entry | FileEntry | undefined) => {
 			if (!b) {
 				return false;
 			}
@@ -122,7 +122,7 @@ export abstract class AbstractLinuxFileDatabase<Entry extends Record<string, unk
 	private async assertOnline(): Promise<void> {
 		const res = await this.status();
 		if (res.status !== 'online') {
-			throw new Error(`${this.name} is not online: ${res.status}`);
+			throw new Error(`${this.name} is not online: ${String(res.status)}`);
 		}
 	}
 

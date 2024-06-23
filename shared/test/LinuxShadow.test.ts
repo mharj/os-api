@@ -8,7 +8,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import type {ILoggerLike} from '@avanio/logger-like';
 import {MockLinuxShadow, buildOutput} from './mockup/MockLinuxShadow';
-import {ShadowEntry} from '../src';
+import {type ShadowEntry} from '../src';
 
 chai.use(chaiAsPromised);
 

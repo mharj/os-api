@@ -1,11 +1,9 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "module": "commonjs"
-  },
-  "importHelpers": false,
-  "include": [
-    "./src/**/*",
-    "./test/**/*"
-  ],
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"rootDir": "./"
+	},
+	"importHelpers": false,
+	"include": ["src", "test"],
+	"exclude": ["node_modules"]
 }

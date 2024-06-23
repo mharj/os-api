@@ -1,5 +1,12 @@
-import {AbstractLinuxFileDatabase, ServiceStatusObject, ShadowEntry, ShadowFileEntry, shadowLineBuilder, validateLinuxShadowEntry} from '../../src';
-import {ILoggerLike} from '@avanio/logger-like';
+import {
+	AbstractLinuxFileDatabase,
+	type ServiceStatusObject,
+	type ShadowEntry,
+	type ShadowFileEntry,
+	shadowLineBuilder,
+	validateLinuxShadowEntry,
+} from '../../src';
+import {type ILoggerLike} from '@avanio/logger-like';
 import {parseShadowLine} from '../../src/lib/shadowLineParser';
 
 export function buildOutput(value: ShadowEntry): string {

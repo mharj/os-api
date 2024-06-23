@@ -2,17 +2,12 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "es2019",
-		"lib": [
-			"es2020",
-			"DOM",
-		],
+		"lib": ["es2020", "DOM"],
 		"rootDir": "./src",
 		"outDir": "./dist",
 		"moduleResolution": "node",
 		"sourceRoot": "./src",
-		"types": [
-			"node"
-		],
+		"types": ["node"],
 		"declaration": true,
 		"removeComments": false,
 		"inlineSources": true,
@@ -27,12 +22,6 @@
 		"noUnusedLocals": true,
 		"strict": true
 	},
-	"include": [
-		"./src/**/*"
-	],
-	"exclude": [
-		"/*.js",
-		"/*.d.ts",
-		"node_modules/*"
-	]
+	"include": ["src"],
+	"exclude": ["test", "node_modules"]
 }

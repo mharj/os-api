@@ -8,7 +8,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import type {ILoggerLike} from '@avanio/logger-like';
 import {MockLinuxPasswd, buildOutput} from './mockup/MockLinuxPasswd';
-import {PasswordEntry} from '../src';
+import {type PasswordEntry} from '../src';
 
 chai.use(chaiAsPromised);
 

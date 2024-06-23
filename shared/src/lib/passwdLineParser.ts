@@ -1,7 +1,7 @@
 /* eslint-disable sort-keys */
-import {passwdEntrySchema, PasswordEntry} from '../types/v1/passwdEntry';
+import {passwdEntrySchema, type PasswordEntry} from '../types/v1/passwdEntry';
 import {getErrorStr} from './zodError';
-import {ILoggerLike} from '@avanio/logger-like';
+import {type ILoggerLike} from '@avanio/logger-like';
 import {isComment} from './common';
 
 export function parsePasswdLine(line: string, logger?: ILoggerLike): PasswordEntry | undefined {

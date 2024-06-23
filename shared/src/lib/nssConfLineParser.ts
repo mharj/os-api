@@ -1,6 +1,6 @@
-import {NssEntry, NssEntryProvider, NssEntryProviderAction, nssEntryProviderActionSchema, nssEntrySchema} from '../types/v1/nsSwitchEntry';
+import {type NssEntry, type NssEntryProvider, type NssEntryProviderAction, nssEntryProviderActionSchema, nssEntrySchema} from '../types/v1/nsSwitchEntry';
 import {getErrorStr} from './zodError';
-import {ILoggerLike} from '@avanio/logger-like';
+import {type ILoggerLike} from '@avanio/logger-like';
 import {isComment} from './common';
 
 /**

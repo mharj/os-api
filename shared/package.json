@@ -1,6 +1,6 @@
 {
   "name": "@avanio/os-api-shared",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -13,11 +13,11 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --minify --sourcemap --format cjs,esm --dts --clean",
+    "build": "tsup src/index.ts --sourcemap --format cjs,esm --dts --clean",
     "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "mocha",
-    "lint": "eslint src"
+    "lint": "eslint src test"
   },
   "files": [
     "dist"
@@ -41,9 +41,10 @@
   "author": "mharj",
   "license": "ISC",
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^2.2.2",
     "@types/chai": "^4.3.16",
     "@types/chai-as-promised": "^7.1.8",
-    "@types/mocha": "^10.0.6",
+    "@types/mocha": "^10.0.7",
     "@types/node": "^18.19.39",
     "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^7.13.1",
@@ -61,12 +62,12 @@
     "sinon": "^18.0.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
+    "tslib": "^2.6.3",
     "tsup": "^8.1.0",
     "typescript": "^5.5.2"
   },
   "dependencies": {
     "@avanio/logger-like": "^0.1.1",
-    "tslib": "^2.6.3",
     "zod": "^3.23.8"
   }
 }

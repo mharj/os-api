@@ -1,11 +1,11 @@
 import {
 	AbstractLinuxFileDatabase,
-	HostEntry,
-	HostFileEntry,
+	type HostEntry,
+	type HostFileEntry,
 	hostLineBuilder,
 	isValidLine,
 	parseHostLine,
-	ServiceStatusObject,
+	type ServiceStatusObject,
 	validateLinuxHostsEntry,
 } from '../../src/';
 import type {ILoggerLike} from '@avanio/logger-like';

@@ -1,4 +1,4 @@
-import {NssEntry} from '../types/v1/nsSwitchEntry';
+import {type NssEntry} from '../types/v1/nsSwitchEntry';
 
 export function nssConfLineBuilder(entry: NssEntry): string {
 	const {database, providers} = entry;

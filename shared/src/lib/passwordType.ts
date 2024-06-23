@@ -1,4 +1,4 @@
-import {LinuxPasswordType} from '../types/passwd';
+import {type LinuxPasswordType} from '../types/passwd';
 
 export function getPasswordType(password: string): LinuxPasswordType {
 	if (password === 'x') {

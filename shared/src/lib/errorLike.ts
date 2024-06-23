@@ -1,4 +1,4 @@
-import {IErrorLike} from '../interfaces';
+import {type IErrorLike} from '../interfaces';
 
 export function toErrorLike(error: unknown): IErrorLike {
 	if (!error) {
@@ -13,6 +13,6 @@ export function toErrorLike(error: unknown): IErrorLike {
 	}
 	return {
 		name: 'Error',
-		message: `${JSON.stringify(error)}`,
+		message: JSON.stringify(error),
 	};
 }

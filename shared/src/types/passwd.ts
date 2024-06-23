@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 export type LinuxPasswordType = 'shadow' | 'sha512' | 'sha256' | 'md5' | 'bcrypt' | 'des' | 'empty';
 export type LinuxSha512Crypt = `$6$${string}$${string}`;
 export type LinuxSha256Crypt = `$5$${string}$${string}`;

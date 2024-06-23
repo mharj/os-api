@@ -1,5 +1,12 @@
-import {AbstractLinuxFileDatabase, passwdLineBuilder, PasswordEntry, PasswordFileEntry, ServiceStatusObject, validateLinuxPasswordEntry} from '../../src';
-import {ILoggerLike} from '@avanio/logger-like';
+import {
+	AbstractLinuxFileDatabase,
+	passwdLineBuilder,
+	type PasswordEntry,
+	type PasswordFileEntry,
+	type ServiceStatusObject,
+	validateLinuxPasswordEntry,
+} from '../../src';
+import {type ILoggerLike} from '@avanio/logger-like';
 import {parsePasswdLine} from '../../src/lib/passwdLineParser';
 
 export function buildOutput(value: PasswordEntry): string {

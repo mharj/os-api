@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import {type z} from 'zod';
 
 export function getErrorStr(parsed: z.SafeParseError<unknown>, rawData: unknown): string {
 	const issue = parsed.error.issues[0];

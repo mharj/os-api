@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable sort-imports */
 /* eslint-disable sort-keys */
 /* eslint-disable no-unused-expressions */
@@ -5,7 +6,7 @@ import * as chai from 'chai';
 import 'mocha';
 import * as sinon from 'sinon';
 import {parsePasswdLine} from '../src/lib/passwdLineParser';
-import {PasswordEntry} from '../src/types/v1/passwdEntry';
+import {type PasswordEntry} from '../src/types/v1/passwdEntry';
 import type {ILoggerLike} from '@avanio/logger-like';
 
 const expect = chai.expect;
@@ -64,15 +65,15 @@ const brokenHostTest: TestBrokenValue[] = [
 	},
 ];
 
-describe('parsePasswdLine', () => {
-	it('should parse valid lines', async () => {
+describe('parsePasswdLine', function () {
+	it('should parse valid lines', function () {
 		validHostTest.forEach(({input, output}) => {
 			const entry = parsePasswdLine(input);
 			expect(entry).to.not.be.undefined;
 			expect(entry).to.deep.equal(output);
 		});
 	});
-	it('should not parse broken lines', async () => {
+	it('should not parse broken lines', function () {
 		brokenHostTest.forEach(({input, output, infoCount, infoMessages}) => {
 			infoSpy.resetHistory();
 			const entry = parsePasswdLine(input, spyLogger);

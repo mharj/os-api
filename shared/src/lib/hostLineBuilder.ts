@@ -1,4 +1,4 @@
-import {HostEntry} from '../types';
+import {type HostEntry} from '../types';
 
 export function hostLineBuilder(entry: HostEntry): string {
 	const {address, hostname, aliases, comment} = entry;

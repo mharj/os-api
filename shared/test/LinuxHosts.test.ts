@@ -7,7 +7,7 @@ import 'mocha';
 import * as sinon from 'sinon';
 import type {ILoggerLike} from '@avanio/logger-like';
 import {MockLinuxHosts, buildOutput} from './mockup/MockLinuxHosts';
-import {HostEntry} from '../src/types/v1/hostEntry';
+import {type HostEntry} from '../src/types/v1/hostEntry';
 
 chai.use(chaiAsPromised);
 
