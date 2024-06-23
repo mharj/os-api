@@ -11,3 +11,5 @@ export * from './writeFile';
 export * from './rename';
 export * from './posixAccountId';
 export * from './posixGroupId';
+export * from './makeDb';
+export * from './types';
