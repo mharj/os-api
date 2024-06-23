@@ -15,10 +15,10 @@ env:
   # Setting an environment variable with the value of a configuration variable
   CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  PACKAGE_NAME: 'unknown'
-  PACKAGE_VERSION: 'unknown'
-  NPM: 'npm'
-  NPM_VERSION: 'unknown'
+  PACKAGE_NAME: "unknown"
+  PACKAGE_VERSION: "unknown"
+  NPM: "npm"
+  NPM_VERSION: "unknown"
   HAVE_COVERAGE_SCRIPT: false
   HAVE_VALIDATE_SCRIPT: false
   HAVE_LINT_SCRIPT: false
@@ -31,9 +31,9 @@ jobs:
       run:
         working-directory: ./linux-passwd-db
     steps:
-      - run: sudo apt-get install -y libnss-db
       - uses: dcarbone/install-jq-action@v2
       - uses: actions/checkout@v4
+      - run: sudo apt-get install -y libnss-db
 
       - name: Get Npm Package Env Variables
         run: bash ../bin/package-envs.sh >> $GITHUB_ENV
