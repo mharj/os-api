@@ -33,12 +33,15 @@ jobs:
     steps:
       - uses: dcarbone/install-jq-action@v2
       - uses: actions/checkout@v4
+
       - name: Get Npm Package Env Variables
         run: bash ../bin/package-envs.sh >> $GITHUB_ENV
+
       - uses: pnpm/action-setup@v2
         if: env.NPM == 'pnpm'
         with:
           version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: "18.x"
