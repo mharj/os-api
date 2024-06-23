@@ -17,7 +17,8 @@
     "watch": "tsc -w",
     "prepublishOnly": "npm run build",
     "test": "mocha",
-    "lint": "eslint src test"
+    "lint": "eslint src test",
+    "validate": "tsc --noEmit --project tsconfig.test.json"
   },
   "files": [
     "dist"
