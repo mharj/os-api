@@ -1,25 +1,22 @@
 import * as fs from 'fs';
 import {
 	AbstractLinuxFileDatabase,
-	HostEntry,
-	HostFileEntry,
-	IErrorLike,
+	type HostEntry,
+	type HostFileEntry,
+	type IErrorLike,
+	type IFileBackupProps,
 	isValidLine,
 	parseHostLine,
-	ServiceStatusObject,
+	type ServiceStatusObject,
 	validateLinuxHostsEntry,
 } from '@avanio/os-api-shared';
-import {access, copyFile, ILinuxSudoOptions, readFile, writeFile} from '@avanio/os-api-linux-utils';
-import {ILoggerLike} from '@avanio/logger-like';
+import {access, copyFile, type ILinuxSudoOptions, readFile, writeFile} from '@avanio/os-api-linux-utils';
+import {type ILoggerLike} from '@avanio/logger-like';
 
-type LinuxHostsProps = {
+interface LinuxHostsProps extends Partial<IFileBackupProps> {
 	/** hosts file path, defaults to /etc/hosts */
 	file?: string;
-	/** backup hosts file before writing, defaults to false */
-	backup?: boolean;
-	/** backup file path, defaults to /etc/hosts.bak */
-	backupFile?: string;
-};
+}
 
 const initialProps = {
 	backup: false,

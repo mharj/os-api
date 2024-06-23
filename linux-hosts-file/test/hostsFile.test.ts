@@ -7,7 +7,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import {copyFile, unlink} from 'fs/promises';
 import {existsSync} from 'fs';
-import {HostEntry} from '@avanio/os-api-shared';
+import {type HostEntry} from '@avanio/os-api-shared';
 import {LinuxHosts} from '../src';
 
 const expect = chai.expect;
@@ -29,7 +29,9 @@ describe('linux hosts file API', () => {
 	});
 	beforeEach(async () => {
 		await copyFile('./test/hosts.test', './test/hosts');
-		unlink('./test/hosts.bak');
+		if (existsSync('./test/hosts.bak')) {
+			await unlink('./test/hosts.bak');
+		}
 	});
 	it('should list hosts entries', async () => {
 		const data = await linuxHosts.list();
