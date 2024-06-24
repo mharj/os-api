@@ -1,7 +1,17 @@
 import * as fs from 'fs';
-import {AbstractLinuxShadow, IErrorLike, isValidLine, parseShadowLine, ServiceStatusObject, ShadowEntry, ShadowFileEntry} from '@avanio/os-api-shared';
-import {access, copyFile, ILinuxSudoOptions, readFile, unlink, writeFile} from '@avanio/os-api-linux-utils';
-import {ILoggerLike} from '@avanio/logger-like';
+import {
+	AbstractLinuxFileDatabase,
+	type IErrorLike,
+	isValidLine,
+	parseShadowLine,
+	type ServiceStatusObject,
+	type ShadowEntry,
+	type ShadowFileEntry,
+	validateLinuxShadowEntry,
+	type IFileBackupProps,
+} from '@avanio/os-api-shared';
+import {access, copyFile, type ILinuxSudoOptions, readFile, unlink, writeFile} from '@avanio/os-api-linux-utils';
+import {type ILoggerLike} from '@avanio/logger-like';
 
 function eStr(value: string | number | undefined): string {
 	return value === undefined ? '' : value.toString();
@@ -10,11 +20,7 @@ function eStr(value: string | number | undefined): string {
 type LinuxPasswdProps = {
 	/** file path, defaults to /etc/passwd */
 	file?: string;
-	/** backup file before writing, defaults to false */
-	backup?: boolean;
-	/** backup file path, defaults to /etc/passwd.bak */
-	backupFile?: string;
-};
+} & Partial<IFileBackupProps>;
 
 const initialProps = {
 	backup: false,
@@ -23,7 +29,7 @@ const initialProps = {
 	sudo: false,
 } satisfies Required<LinuxPasswdProps> & ILinuxSudoOptions;
 
-export class LinuxShadow extends AbstractLinuxShadow {
+export class LinuxShadow extends AbstractLinuxFileDatabase<ShadowEntry, ShadowFileEntry> {
 	public readonly name = 'LinuxShadowFile';
 	public props: Required<LinuxPasswdProps> & ILinuxSudoOptions;
 	private logger?: ILoggerLike;
@@ -76,7 +82,7 @@ export class LinuxShadow extends AbstractLinuxShadow {
 
 	protected toOutput(value: ShadowEntry): string {
 		// linux shadow line
-		const data = `${value.username}:${value.password}:${value.changed}:${value.min}:${value.max}:${value.warn}:${eStr(value.inactive)}:${eStr(
+		const data = `${value.username}:${value.password}:${value.changed.toString()}:${value.min.toString()}:${value.max.toString()}:${value.warn.toString()}:${eStr(value.inactive)}:${eStr(
 			value.expire,
 		)}:${eStr(value.reserved)}`;
 		if (parseShadowLine(data) === undefined) {
@@ -90,6 +96,17 @@ export class LinuxShadow extends AbstractLinuxShadow {
 			return parseShadowLine(value, this.logger);
 		}
 		return undefined;
+	}
+
+	protected validateEntry(entry: ShadowEntry): void {
+		validateLinuxShadowEntry(entry);
+	}
+
+	protected isSameEntry(a: ShadowEntry | ShadowFileEntry, b: ShadowEntry | ShadowFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.username === b.username;
 	}
 
 	protected async storeOutput(value: string[]): Promise<void> {

@@ -8,7 +8,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import {copyFile, unlink} from 'fs/promises';
 import {existsSync} from 'fs';
 import {LinuxShadow} from '../src';
-import {ShadowEntry} from '@avanio/os-api-shared';
+import {type ShadowEntry} from '@avanio/os-api-shared';
 
 const expect = chai.expect;
 
@@ -37,7 +37,9 @@ describe('linux shadow file API', () => {
 	});
 	beforeEach(async () => {
 		await copyFile('./test/shadow.test', file);
-		unlink(backupFile);
+		if (existsSync(backupFile)) {
+			await unlink(backupFile);
+		}
 	});
 	it('should list entries', async () => {
 		const data = await linuxShadow.list();
