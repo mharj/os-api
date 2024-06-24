@@ -1,7 +1,16 @@
 import * as fs from 'fs';
-import {AbstractLinuxPasswd, IErrorLike, isValidLine, parsePasswdLine, PasswordEntry, PasswordFileEntry, ServiceStatusObject} from '@avanio/os-api-shared';
-import {access, copyFile, ILinuxSudoOptions, readFile, unlink, writeFile} from '@avanio/os-api-linux-utils';
-import {ILoggerLike} from '@avanio/logger-like';
+import {
+	AbstractLinuxFileDatabase,
+	type IErrorLike,
+	isValidLine,
+	parsePasswdLine,
+	type PasswordEntry,
+	type PasswordFileEntry,
+	type ServiceStatusObject,
+	validateLinuxPasswordEntry,
+} from '@avanio/os-api-shared';
+import {access, copyFile, type ILinuxSudoOptions, readFile, unlink, writeFile} from '@avanio/os-api-linux-utils';
+import {type ILoggerLike} from '@avanio/logger-like';
 
 type LinuxPasswdProps = {
 	/** file path, defaults to /etc/passwd */
@@ -19,7 +28,7 @@ const initialProps = {
 	sudo: false,
 } satisfies Required<LinuxPasswdProps> & ILinuxSudoOptions;
 
-export class LinuxPasswd extends AbstractLinuxPasswd {
+export class LinuxPasswd extends AbstractLinuxFileDatabase<PasswordEntry, PasswordFileEntry> {
 	public readonly name = 'LinuxPasswdFile';
 	public props: Required<LinuxPasswdProps> & ILinuxSudoOptions;
 	private logger?: ILoggerLike;
@@ -71,7 +80,7 @@ export class LinuxPasswd extends AbstractLinuxPasswd {
 	}
 
 	protected toOutput(value: PasswordEntry): string {
-		const data = `${value.username}:${value.password}:${value.uid}:${value.gid}:${value.gecos}:${value.home}:${value.shell}`;
+		const data = `${value.username}:${value.password}:${value.uid.toString()}:${value.gid.toString()}:${value.gecos}:${value.home}:${value.shell}`;
 		if (parsePasswdLine(data) === undefined) {
 			throw new Error(`Invalid output line: ${data}`);
 		}
@@ -83,6 +92,17 @@ export class LinuxPasswd extends AbstractLinuxPasswd {
 			return parsePasswdLine(value, this.logger);
 		}
 		return undefined;
+	}
+
+	protected validateEntry(entry: PasswordEntry): void {
+		validateLinuxPasswordEntry(entry);
+	}
+
+	protected isSameEntry(a: PasswordEntry | PasswordFileEntry, b: PasswordEntry | PasswordFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.username === b.username;
 	}
 
 	protected async storeOutput(value: string[]): Promise<void> {

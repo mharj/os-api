@@ -8,7 +8,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import {copyFile, unlink} from 'fs/promises';
 import {existsSync} from 'fs';
 import {LinuxPasswd} from '../src';
-import {PasswordEntry} from '@avanio/os-api-shared';
+import {type PasswordEntry} from '@avanio/os-api-shared';
 
 const expect = chai.expect;
 
@@ -35,7 +35,9 @@ describe('linux passwd file API', () => {
 	});
 	beforeEach(async () => {
 		await copyFile('./test/passwd.test', file);
-		unlink(backupFile);
+		if (existsSync(backupFile)) {
+			await unlink(backupFile);
+		}
 	});
 	it('should list entries', async () => {
 		const data = await linuxPasswd.list();
