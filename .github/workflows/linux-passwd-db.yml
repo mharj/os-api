@@ -38,7 +38,7 @@ jobs:
       - name: Get Npm Package Env Variables
         run: bash ../bin/package-envs.sh >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         if: env.NPM == 'pnpm'
         with:
           version: 9
