@@ -1,8 +1,18 @@
 import * as fs from 'fs';
-import * as path from 'path';
-import {AbstractLinuxShadow, IErrorLike, isValidLine, parseShadowLine, ServiceStatusObject, ShadowEntry, shadowLineBuilder} from '@avanio/os-api-shared';
-import {access, copyFile, execFilePromise, ILinuxSudoOptions} from '@avanio/os-api-linux-utils';
-import {ILoggerLike} from '@avanio/logger-like';
+import {
+	AbstractLinuxFileDatabase,
+	type IErrorLike,
+	type IFileBackupProps,
+	isValidLine,
+	parseShadowLine,
+	type ServiceStatusObject,
+	type ShadowEntry,
+	type ShadowFileEntry,
+	shadowLineBuilder,
+	validateLinuxShadowEntry,
+} from '@avanio/os-api-shared';
+import {access, copyFile, type ILinuxSudoOptions, type IMakeDbProps, readMakeDbFile, writeMakeDbFile} from '@avanio/os-api-linux-utils';
+import {type ILoggerLike} from '@avanio/logger-like';
 
 type LinuxShadowDbProps = {
 	/**
@@ -11,22 +21,8 @@ type LinuxShadowDbProps = {
 	 * @default '/var/lib/misc/shadow.db' as for Debian/Ubuntu based systems.
 	 */
 	file?: string;
-	/**
-	 * Makedb command path
-	 * @default '/usr/bin/makedb'
-	 */
-	makedb?: string;
-	/**
-	 * Create a backup of the database file before writing
-	 */
-	backup?: boolean;
-	/**
-	 * Backup file path
-	 *
-	 * @default '/var/lib/misc/shadow.db.bak'
-	 */
-	backupFile?: string;
-};
+} & Partial<IFileBackupProps> &
+	IMakeDbProps;
 
 const initialProps: Required<LinuxShadowDbProps> & ILinuxSudoOptions = {
 	backup: false,
@@ -36,7 +32,7 @@ const initialProps: Required<LinuxShadowDbProps> & ILinuxSudoOptions = {
 	sudo: false,
 };
 
-export class LinuxShadowDb extends AbstractLinuxShadow {
+export class LinuxShadowDb extends AbstractLinuxFileDatabase<ShadowEntry, ShadowFileEntry> {
 	public readonly name = 'LinuxShadowDb';
 	private logger?: ILoggerLike;
 	public props: Required<LinuxShadowDbProps> & ILinuxSudoOptions;
@@ -88,36 +84,31 @@ export class LinuxShadowDb extends AbstractLinuxShadow {
 		return (await this.listRaw()).some((v) => v === line);
 	}
 
+	protected validateEntry(entry: ShadowEntry): void {
+		validateLinuxShadowEntry(entry);
+	}
+
+	protected isSameEntry(a: ShadowEntry | ShadowFileEntry, b: ShadowEntry | ShadowFileEntry | undefined): boolean {
+		if (!b) {
+			return false;
+		}
+		return a.username === b.username;
+	}
+
 	protected async storeOutput(value: string[]): Promise<void> {
 		if (this.props.backup) {
 			this.logger?.debug(`${this.name}::backup`, this.props.backupFile);
 			await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
 		}
-		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
-		this.logger?.debug(`${this.name}::storeOutput:`, cmd, args);
-		await execFilePromise(cmd, args, Buffer.from(value.join('\n')));
+		await writeMakeDbFile(this.props.file, Buffer.from(value.join('\n')), {...this.props, logger: this.logger});
 	}
 
 	protected async loadOutput(): Promise<string[]> {
-		const {cmd, args} = this.buildExecParams(['--quiet', '-u', path.resolve(this.props.file)]);
-		this.logger?.debug(`${this.name}::loadOutput:`, cmd, args);
-		const data = await execFilePromise(cmd, args);
+		const data = await readMakeDbFile(this.props.file, {...this.props, logger: this.logger});
 		return data
 			.toString()
 			.split('\n')
 			.map((l) => l.trim())
 			.filter((l) => l.length > 0);
-	}
-
-	private buildExecParams(args: string[]): {cmd: string; args: string[]} {
-		const newArgs = [this.props.makedb, ...args];
-		if (this.props.sudo) {
-			newArgs.unshift('sudo', '-b'); // add sudo and sudo background mode
-		}
-		const cmd = newArgs.shift();
-		if (!cmd) {
-			throw new Error('No command found');
-		}
-		return {cmd, args: newArgs};
 	}
 }

@@ -102,3 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+#
+test/hosts
+
+# ignore all subdirectories dist and node_modules
+*/dist/
+*/node_modules/
