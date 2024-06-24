@@ -2,13 +2,13 @@ import * as fs from 'fs';
 import {
 	AbstractLinuxFileDatabase,
 	type IErrorLike,
+	type IFileBackupProps,
 	isValidLine,
 	parseShadowLine,
 	type ServiceStatusObject,
 	type ShadowEntry,
 	type ShadowFileEntry,
 	validateLinuxShadowEntry,
-	type IFileBackupProps,
 } from '@avanio/os-api-shared';
 import {access, copyFile, type ILinuxSudoOptions, readFile, unlink, writeFile} from '@avanio/os-api-linux-utils';
 import {type ILoggerLike} from '@avanio/logger-like';
