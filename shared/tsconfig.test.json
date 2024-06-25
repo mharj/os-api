@@ -4,6 +4,6 @@
 		"rootDir": "./"
 	},
 	"importHelpers": false,
-	"include": ["src", "test"],
-	"exclude": ["node_modules"]
+	"include": ["./**/*.ts"],
+	"exclude": ["node_modules", "dist"]
 }

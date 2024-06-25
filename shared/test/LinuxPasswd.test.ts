@@ -2,17 +2,11 @@
 /* eslint-disable sort-imports */
 /* eslint-disable sort-keys */
 /* eslint-disable no-unused-expressions */
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-import 'mocha';
+import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
 import type {ILoggerLike} from '@avanio/logger-like';
 import {MockLinuxPasswd, buildOutput} from './mockup/MockLinuxPasswd';
-import {type PasswordEntry} from '../src';
-
-chai.use(chaiAsPromised);
-
-const expect = chai.expect;
+import {passwdEntrySchema, type PasswordEntry} from '../src';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();
@@ -52,43 +46,42 @@ describe('Linux Passwd', () => {
 	it('should get list of entries', async () => {
 		const data = await testClass.list();
 		data.forEach((e) => {
-			expect(e).to.not.be.undefined;
-			expect(e).to.have.keys(['username', 'password', 'uid', 'gid', 'gecos', 'home', 'shell', 'line']);
+			expect(e).not.toBe(undefined);
+			expect(passwdEntrySchema.safeParse(e).success).toBe(true);
 		});
 	});
 	it('should add entry to list', async () => {
 		const newEntryString = buildOutput(newEntry);
-		expect(await testClass.add(newEntry)).to.be.true;
+		expect(await testClass.add(newEntry)).toBe(true);
 		const line = (await testClass.listRaw()).find((e) => e === newEntryString);
-		expect(line).to.not.be.undefined;
+		expect(line).not.toBe(undefined);
 	});
 	it('should replace entry in list', async () => {
 		let currentEntry = (await testClass.list()).find((e) => e.username === newEntry.username);
-		expect(currentEntry).to.not.be.undefined;
+		expect(currentEntry).not.toBe(undefined);
 		if (!currentEntry) {
 			throw new Error('currentEntries is undefined');
 		}
-		expect(await testClass.replace(currentEntry, {...newEntry, shell: '/bin/sh'})).to.be.true;
+		expect(await testClass.replace(currentEntry, {...newEntry, shell: '/bin/sh'})).toBe(true);
 		currentEntry = (await testClass.list()).find((e) => e.username === newEntry.username);
-		expect(currentEntry).to.not.be.undefined;
+		expect(currentEntry).not.toBe(undefined);
 		if (!currentEntry) {
 			throw new Error('currentEntries is undefined');
 		}
-		expect(currentEntry.shell).to.be.equal('/bin/sh');
+		expect(currentEntry.shell).toBe('/bin/sh');
 	});
 	it('should delete entry from list', async () => {
 		let currentEntry = (await testClass.list()).find((e) => e.username === newEntry.username);
-		expect(currentEntry).to.not.be.undefined;
+		expect(currentEntry).not.toBe(undefined);
 		if (!currentEntry) {
 			throw new Error('currentEntries is undefined');
 		}
 		await testClass.delete(currentEntry);
 		currentEntry = (await testClass.list()).find((e) => e.username === newEntry.username);
-		expect(currentEntry).to.be.undefined;
+		expect(currentEntry).toBe(undefined);
 	});
 	it('should throw error on broken entry', async () => {
-		await expect(testClass.add(brokenEntry)).to.be.eventually.rejectedWith(
-			TypeError,
+		await expect(testClass.add(brokenEntry)).rejects.toThrow(
 			`Invalid passwd entry: "username" contains invalid characters. {"username":"asd,wer,rtyqww","password":"x","uid":1000,"gid":1000,"gecos":"test user","home":"/home/testuser","shell":"/bin/bash"}`,
 		);
 	});

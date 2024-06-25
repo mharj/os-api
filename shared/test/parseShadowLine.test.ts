@@ -2,14 +2,11 @@
 /* eslint-disable sort-imports */
 /* eslint-disable sort-keys */
 /* eslint-disable no-unused-expressions */
-import * as chai from 'chai';
-import 'mocha';
+import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
 import {parseShadowLine} from '../src/lib/shadowLineParser';
 import {type ShadowEntry} from '../src/types/v1/shadowEntry';
 import type {ILoggerLike} from '@avanio/logger-like';
-
-const expect = chai.expect;
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();
@@ -87,18 +84,18 @@ describe('parseShadowLine', function () {
 	it('should parse valid lines', function () {
 		validHostTest.forEach(({input, output}) => {
 			const entry = parseShadowLine(input);
-			expect(entry).to.not.be.undefined;
-			expect(entry).to.deep.equal(output);
+			expect(entry).not.toBeUndefined();
+			expect(entry).toEqual(output);
 		});
 	});
 	it('should not parse broken lines', function () {
 		brokenHostTest.forEach(({input, output, infoCount, infoMessages}) => {
 			infoSpy.resetHistory();
 			const entry = parseShadowLine(input, spyLogger);
-			expect(entry).to.be.undefined;
-			expect(entry).to.be.equal(output);
-			expect(infoSpy.callCount).to.be.equal(infoCount);
-			expect(infoSpy.getCalls().map((call) => call.args[0])).to.be.deep.equal(infoMessages);
+			expect(entry).toBeUndefined();
+			expect(entry).toEqual(output);
+			expect(infoSpy.callCount).toBe(infoCount);
+			expect(infoSpy.getCalls().map((call) => call.args[0])).toEqual(infoMessages);
 		});
 	});
 });
