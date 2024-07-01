@@ -8,7 +8,7 @@ import {type ILinuxSudoOptions} from './lib/sudoUtils';
  * @param {number} mode - The mode to test the file with (default: constants.F_OK)
  * @param {ILinuxSudoOptions} options - Options for sudo
  * @example
- * await test('./test.txt', fs.constants.R_OK, {sudo: true}); // boolean
+ * await test('./test.txt', fs.constants.F_OK, {sudo: true}); // boolean
  */
 export async function test(path: PathLike, mode: number = constants.F_OK, options: ILinuxSudoOptions = {sudo: false}): Promise<boolean> {
 	try {
