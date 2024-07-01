@@ -1,5 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
+	AbstractLinuxFileDatabaseProps,
 	nssConfLineBuilder,
 	type NssEntry,
 	type NssFileEntry,
@@ -17,9 +18,8 @@ export function buildOutput(value: NssEntry): string {
 	return data;
 }
 
-export class MockLinuxNssConf extends AbstractLinuxFileDatabase<NssEntry, NssFileEntry> {
+export class MockLinuxNssConf extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, NssEntry, NssFileEntry> {
 	public name = 'MockLinuxNssConf';
-	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [
 		'# /etc/nsswitch.conf',
@@ -44,9 +44,10 @@ export class MockLinuxNssConf extends AbstractLinuxFileDatabase<NssEntry, NssFil
 		'netgroup:       nis',
 	];
 
+	private _backup: string[] = [];
+
 	constructor(logger: ILoggerLike) {
-		super();
-		this.logger = logger;
+		super({logger});
 	}
 
 	public status(): Promise<ServiceStatusObject> {
@@ -70,10 +71,6 @@ export class MockLinuxNssConf extends AbstractLinuxFileDatabase<NssEntry, NssFil
 		return Promise.resolve([...this._data]);
 	}
 
-	protected verifyWrite(value: NssEntry): Promise<boolean> {
-		return Promise.resolve(this._data.includes(this.toOutput(value)));
-	}
-
 	protected isSameEntry(a: NssEntry | NssFileEntry, b: NssEntry | NssFileEntry | undefined): boolean {
 		if (!b) {
 			return false;
@@ -83,5 +80,27 @@ export class MockLinuxNssConf extends AbstractLinuxFileDatabase<NssEntry, NssFil
 
 	protected validateEntry(entry: NssEntry): void {
 		validateLinuxNssEntry(entry);
+	}
+
+	protected verifyWrite(value: NssEntry) {
+		return this._data.includes(this.toOutput(value));
+	}
+
+	protected verifyDelete(value: NssFileEntry) {
+		return !this._data.some((line) => {
+			const entry = this.fromOutput(line);
+			if (!entry) {
+				return false;
+			}
+			return this.isSameEntry(entry, value);
+		});
+	}
+
+	protected createBackup(): void | Promise<void> {
+		this._backup = [...this._data];
+	}
+
+	protected restoreBackup(): void | Promise<void> {
+		this._data = [...this._backup];
 	}
 }

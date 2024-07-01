@@ -17,5 +17,5 @@ type ServiceStatusErrorObject = {
 export type ServiceStatusObject = ServiceStatusBaseObject | ServiceStatusErrorObject;
 
 export interface IServiceStatus {
-	status(): Promise<ServiceStatusObject>;
+	status(): ServiceStatusObject | Promise<ServiceStatusObject>;
 }

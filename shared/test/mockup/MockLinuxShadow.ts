@@ -1,5 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
+	AbstractLinuxFileDatabaseProps,
 	type ServiceStatusObject,
 	type ShadowEntry,
 	type ShadowFileEntry,
@@ -17,9 +18,8 @@ export function buildOutput(value: ShadowEntry): string {
 	return data;
 }
 
-export class MockLinuxShadow extends AbstractLinuxFileDatabase<ShadowEntry, ShadowFileEntry> {
+export class MockLinuxShadow extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, ShadowEntry, ShadowFileEntry> {
 	public name = 'MockLinuxShadow';
-	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [
 		'# linux shadow file with comments',
@@ -29,9 +29,10 @@ export class MockLinuxShadow extends AbstractLinuxFileDatabase<ShadowEntry, Shad
 		'sys:*:16193:0:99999:7:::',
 	];
 
+	private _backup: string[] = [];
+
 	constructor(logger: ILoggerLike) {
-		super();
-		this.logger = logger;
+		super({logger});
 	}
 
 	public status(): Promise<ServiceStatusObject> {
@@ -66,7 +67,25 @@ export class MockLinuxShadow extends AbstractLinuxFileDatabase<ShadowEntry, Shad
 		return Promise.resolve([...this._data]);
 	}
 
-	protected verifyWrite(value: ShadowEntry): Promise<boolean> {
-		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	protected verifyWrite(value: ShadowEntry) {
+		return this._data.includes(this.toOutput(value));
+	}
+
+	protected verifyDelete(value: ShadowFileEntry) {
+		return !this._data.some((line) => {
+			const entry = this.fromOutput(line);
+			if (!entry) {
+				return false;
+			}
+			return this.isSameEntry(entry, value);
+		});
+	}
+
+	protected createBackup(): void | Promise<void> {
+		this._backup = [...this._data];
+	}
+
+	protected restoreBackup(): void | Promise<void> {
+		this._data = [...this._backup];
 	}
 }

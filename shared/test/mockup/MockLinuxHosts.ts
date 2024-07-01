@@ -1,5 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
+	AbstractLinuxFileDatabaseProps,
 	type HostEntry,
 	type HostFileEntry,
 	hostLineBuilder,
@@ -18,9 +19,8 @@ export function buildOutput(value: HostEntry): string {
 	return data;
 }
 
-export class MockLinuxHosts extends AbstractLinuxFileDatabase<HostEntry, HostFileEntry> {
+export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, HostEntry, HostFileEntry> {
 	public name = 'MockLinuxHosts';
-	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [
 		'127.0.0.1       localhost',
@@ -29,9 +29,10 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<HostEntry, HostFil
 		'::1     ip6-localhost ip6-loopback',
 	];
 
+	private _backup: string[] = [];
+
 	constructor(logger: ILoggerLike) {
-		super();
-		this.logger = logger;
+		super({logger});
 	}
 
 	public setState(state: ServiceStatusObject) {
@@ -62,10 +63,6 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<HostEntry, HostFil
 		return Promise.resolve([...this._data]);
 	}
 
-	protected verifyWrite(value: HostEntry): Promise<boolean> {
-		return Promise.resolve(this._data.includes(this.toOutput(value)));
-	}
-
 	protected isSameEntry(a: HostEntry | HostFileEntry, b: HostEntry | HostFileEntry | undefined): boolean {
 		if (!b) {
 			return false;
@@ -75,5 +72,27 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<HostEntry, HostFil
 
 	protected validateEntry(entry: HostEntry): void {
 		validateLinuxHostsEntry(entry);
+	}
+
+	protected verifyWrite(value: HostEntry) {
+		return this._data.includes(this.toOutput(value));
+	}
+
+	protected verifyDelete(value: HostFileEntry) {
+		return !this._data.some((line) => {
+			const entry = this.fromOutput(line);
+			if (!entry) {
+				return false;
+			}
+			return this.isSameEntry(entry, value);
+		});
+	}
+
+	protected createBackup(): void | Promise<void> {
+		this._backup = [...this._data];
+	}
+
+	protected restoreBackup(): void | Promise<void> {
+		this._data = [...this._backup];
 	}
 }

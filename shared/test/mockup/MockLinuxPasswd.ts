@@ -1,5 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
+	AbstractLinuxFileDatabaseProps,
 	passwdLineBuilder,
 	type PasswordEntry,
 	type PasswordFileEntry,
@@ -17,9 +18,8 @@ export function buildOutput(value: PasswordEntry): string {
 	return data;
 }
 
-export class MockLinuxPasswd extends AbstractLinuxFileDatabase<PasswordEntry, PasswordFileEntry> {
+export class MockLinuxPasswd extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, PasswordEntry, PasswordFileEntry> {
 	public name = 'MockLinuxPasswd';
-	private logger: ILoggerLike;
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [
 		'# linux passwd file with comments',
@@ -29,9 +29,10 @@ export class MockLinuxPasswd extends AbstractLinuxFileDatabase<PasswordEntry, Pa
 		'sys:x:3:3:sys:/dev:/usr/sbin/nologin',
 	];
 
+	private _backup: string[] = [];
+
 	constructor(logger: ILoggerLike) {
-		super();
-		this.logger = logger;
+		super({logger});
 	}
 
 	public status(): Promise<ServiceStatusObject> {
@@ -55,8 +56,8 @@ export class MockLinuxPasswd extends AbstractLinuxFileDatabase<PasswordEntry, Pa
 		return Promise.resolve([...this._data]);
 	}
 
-	protected verifyWrite(value: PasswordEntry): Promise<boolean> {
-		return Promise.resolve(this._data.includes(this.toOutput(value)));
+	protected validateEntry(entry: PasswordEntry): void {
+		validateLinuxPasswordEntry(entry);
 	}
 
 	protected isSameEntry(a: PasswordEntry | PasswordFileEntry, b: PasswordEntry | PasswordFileEntry | undefined) {
@@ -66,7 +67,25 @@ export class MockLinuxPasswd extends AbstractLinuxFileDatabase<PasswordEntry, Pa
 		return a.username === b.username;
 	}
 
-	protected validateEntry(entry: PasswordEntry): void {
-		validateLinuxPasswordEntry(entry);
+	protected verifyWrite(value: PasswordEntry) {
+		return this._data.includes(this.toOutput(value));
+	}
+
+	protected verifyDelete(value: PasswordFileEntry) {
+		return !this._data.some((line) => {
+			const entry = this.fromOutput(line);
+			if (!entry) {
+				return false;
+			}
+			return this.isSameEntry(entry, value);
+		});
+	}
+
+	protected createBackup(): void | Promise<void> {
+		this._backup = [...this._data];
+	}
+
+	protected restoreBackup(): void | Promise<void> {
+		this._data = [...this._backup];
 	}
 }
