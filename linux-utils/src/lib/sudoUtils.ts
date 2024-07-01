@@ -28,7 +28,7 @@ export function sudoArgs(args: string[], options: ILinuxSudoOptions) {
 	}
 	const sudoPath = options.sudoPath || '/usr/bin/sudo';
 	if (options.sudoUser) {
-		return [sudoPath, '-n', '-U', options.sudoUser, ...args];
+		return [sudoPath, '-n', '-u', options.sudoUser, ...args];
 	}
 	return [sudoPath, '-n', ...args];
 }
