@@ -6,6 +6,7 @@ export * from './lib/execFilePromise';
 export * from './lib/sudoUtils';
 export * from './readFile';
 export * from './stat';
+export * from './test';
 export * from './unlink';
 export * from './writeFile';
 export * from './rename';
