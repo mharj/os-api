@@ -1,6 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
-	AbstractLinuxFileDatabaseProps,
+	type AbstractLinuxFileDatabaseProps,
 	nssConfLineBuilder,
 	type NssEntry,
 	type NssFileEntry,

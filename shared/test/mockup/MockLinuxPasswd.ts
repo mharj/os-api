@@ -1,6 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
-	AbstractLinuxFileDatabaseProps,
+	type AbstractLinuxFileDatabaseProps,
 	passwdLineBuilder,
 	type PasswordEntry,
 	type PasswordFileEntry,

@@ -1,18 +1,18 @@
+import {type ILoggerLike, LogLevel, MapLogger} from '@avanio/logger-like';
 import {type ApiServiceV1} from '../interfaces/service';
 import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {type IFileBackupProps} from '../interfaces';
-import {LogLevel, MapLogger, type ILoggerLike} from '@avanio/logger-like';
 import {type ServiceStatusObject} from '../interfaces/ServiceStatus';
 
 const defaultMapLogLevels = {
-	list: LogLevel.None,
-	delete: LogLevel.Debug,
 	add: LogLevel.Debug,
-	replace: LogLevel.Debug,
-	store_output: LogLevel.Debug,
-	load_output: LogLevel.None,
 	create_backup: LogLevel.Debug,
+	delete: LogLevel.Debug,
+	list: LogLevel.None,
+	load_output: LogLevel.None,
+	replace: LogLevel.Debug,
 	restore_backup: LogLevel.Debug,
+	store_output: LogLevel.Debug,
 } as const;
 
 export type AbstractLinuxFileDatabaseLogLevels = typeof defaultMapLogLevels;
@@ -169,15 +169,12 @@ export abstract class AbstractLinuxFileDatabase<
 		}
 		this.logger.logKey('store_output', `${this.name}: storing output`);
 		await this.storeOutput(data);
-		if (value) {
-			const isVerified = isDelete ? await this.verifyDelete(value) : await this.verifyWrite(value);
-			if (!isVerified && this.props.backup) {
-				this.logger.logKey('restore_backup', `${this.name}: restoring backup`);
-				await this.restoreBackup();
-			}
-			return isVerified;
+		const isVerified = isDelete ? await this.verifyDelete(value) : await this.verifyWrite(value);
+		if (!isVerified && this.props.backup) {
+			this.logger.logKey('restore_backup', `${this.name}: restoring backup`);
+			await this.restoreBackup();
 		}
-		return true;
+		return isVerified;
 	}
 
 	private handleRead(): Output[] | Promise<Output[]> {

@@ -1,6 +1,6 @@
 import {
 	AbstractLinuxFileDatabase,
-	AbstractLinuxFileDatabaseProps,
+	type AbstractLinuxFileDatabaseProps,
 	type HostEntry,
 	type HostFileEntry,
 	hostLineBuilder,
