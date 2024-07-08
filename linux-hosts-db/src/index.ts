@@ -1,32 +1,33 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import {
 	AbstractLinuxFileDatabase,
+	type AbstractLinuxFileDatabaseProps,
 	type HostEntry,
 	type HostFileEntry,
 	type IErrorLike,
 	type IFileBackupProps,
 	isValidLine,
+	type LinuxBackupPermission,
 	parseHostLine,
 	type ServiceStatusObject,
 	validateLinuxHostsEntry,
 } from '@avanio/os-api-shared';
-import {access, copyFile, execFilePromise, type ILinuxSudoOptions} from '@avanio/os-api-linux-utils';
-import {type ILoggerLike} from '@avanio/logger-like';
+import {access, chmod, copyFile, type ILinuxSudoOptions, readMakeDbFile, writeMakeDbFile} from '@avanio/os-api-linux-utils';
 
-interface LinuxHostsDbProps extends Partial<IFileBackupProps> {
-	/**
-	 * NSS database file path
-	 *
-	 * @default '/var/lib/misc/hosts.db' as for Debian/Ubuntu based systems.
-	 */
-	file?: string;
-	/**
-	 * Makedb command path
-	 * @default '/usr/bin/makedb'
-	 */
-	makedb?: string;
-}
+type LinuxHostsDbProps = Partial<IFileBackupProps<LinuxBackupPermission>> &
+	ILinuxSudoOptions & {
+		/**
+		 * NSS database file path
+		 *
+		 * @default '/var/lib/misc/hosts.db' as for Debian/Ubuntu based systems.
+		 */
+		file?: string;
+		/**
+		 * Makedb command path
+		 * @default '/usr/bin/makedb'
+		 */
+		makedb?: string;
+	};
 
 const initialProps = {
 	backup: false,
@@ -34,45 +35,12 @@ const initialProps = {
 	file: '/var/lib/misc/hosts.db',
 	makedb: '/usr/bin/makedb',
 	sudo: false,
-} satisfies Required<LinuxHostsDbProps> & ILinuxSudoOptions;
+} satisfies LinuxHostsDbProps;
 
-export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileEntry> {
+export class LinuxHostsDb extends AbstractLinuxFileDatabase<Required<LinuxHostsDbProps> & AbstractLinuxFileDatabaseProps, HostEntry, HostFileEntry> {
 	public readonly name = 'LinuxHostsDb';
-	private logger?: ILoggerLike;
-	public props: Required<LinuxHostsDbProps> & ILinuxSudoOptions;
-	constructor(props: LinuxHostsDbProps & ILinuxSudoOptions = {}, logger?: ILoggerLike) {
-		super();
-		this.props = {...initialProps, ...props};
-		this.logger = logger;
-	}
-
-	/**
-	 * Add new entry to hosts, overriden to handle backup restore
-	 * @param value - HostEntry
-	 * @param index - optional index to insert entry at
-	 * @returns promise that resolves to true if write was successful
-	 */
-	public override async add(value: HostEntry, index?: number): Promise<boolean> {
-		return this.handleRestore(super.add(value, index));
-	}
-
-	/**
-	 * Replace current hosts entry with new one, overriden to handle backup restore
-	 * @param current - HostFileEntry
-	 * @param replace - HostEntry
-	 * @returns promise that resolves to true if write was successful
-	 */
-	public override async replace(current: HostFileEntry, replace: HostEntry): Promise<boolean> {
-		return this.handleRestore(super.replace(current, replace));
-	}
-
-	/**
-	 * Delete hosts entry, overriden to handle backup restore
-	 * @param value - HostFileEntry
-	 * @returns promise that resolves to true if write was successful
-	 */
-	public override async delete(value: HostFileEntry): Promise<boolean> {
-		return this.handleRestore(super.delete(value));
+	constructor(props: LinuxHostsDbProps & ILinuxSudoOptions & Partial<AbstractLinuxFileDatabaseProps> = {}) {
+		super(Object.assign({}, initialProps, props));
 	}
 
 	public async status(): Promise<ServiceStatusObject> {
@@ -117,20 +85,17 @@ export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileE
 		return (await this.listRaw()).some((v) => v === line);
 	}
 
+	protected async verifyDelete(value: HostEntry): Promise<boolean> {
+		const line = this.toOutput(value);
+		return !(await this.listRaw()).some((v) => v === line);
+	}
+
 	protected async storeOutput(value: string[]): Promise<void> {
-		if (this.props.backup) {
-			this.logger?.debug(`${this.name}::backup`, this.props.backupFile);
-			await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
-		}
-		const {cmd, args} = this.buildExecParams(['--quiet', '-o', path.resolve(this.props.file), '-']);
-		this.logger?.debug(`${this.name}::storeOutput:`, cmd, args);
-		await execFilePromise(cmd, args, Buffer.from(value.join('\n')));
+		await writeMakeDbFile(this.props.file, Buffer.from(value.join('\n')), this.props);
 	}
 
 	protected async loadOutput(): Promise<string[]> {
-		const {cmd, args} = this.buildExecParams(['--quiet', '-u', path.resolve(this.props.file)]);
-		this.logger?.debug(`${this.name}::loadOutput:`, cmd, args);
-		const data = await execFilePromise(cmd, args);
+		const data = await readMakeDbFile(this.props.file, this.props);
 		return data.toString().split('\n');
 	}
 
@@ -145,29 +110,23 @@ export class LinuxHostsDb extends AbstractLinuxFileDatabase<HostEntry, HostFileE
 		validateLinuxHostsEntry(entry);
 	}
 
-	private buildExecParams(args: string[]): {cmd: string; args: string[]} {
-		const newArgs = [this.props.makedb, ...args];
-		if (this.props.sudo) {
-			newArgs.unshift('sudo', '-b'); // add sudo and sudo background mode
+	protected async createBackup(): Promise<void> {
+		await copyFile(this.props.file, this.props.backupFile, undefined, this.props);
+		if (this.props.backupPermissions.posixMode) {
+			// clone permissions from the original file
+			await chmod(this.props.backupFile, this.modeAsOctal(this.props.backupPermissions.posixMode), this.props);
 		}
-		const cmd = newArgs.shift();
-		if (!cmd) {
-			throw new Error('No command found');
-		}
-		return {cmd, args: newArgs};
 	}
 
-	/**
-	 * if write fails and backup is enabled, restores backup file
-	 * @param isWriteOk - promise that resolves to true if write was successful
-	 * @returns promise that resolves to true if write was successful
-	 */
-	private async handleRestore(isWriteOk: Promise<boolean>): Promise<boolean> {
-		const status = await isWriteOk;
-		if (!status && this.props.backup) {
-			this.logger?.warn(`${this.name}: Write failed, restoring backup file ${this.props.backupFile}`);
-			await copyFile(this.props.backupFile, this.props.file, undefined, this.props);
+	protected async restoreBackup(): Promise<void> {
+		await copyFile(this.props.backupFile, this.props.file, undefined, this.props);
+		if (this.props.backupPermissions.posixMode) {
+			// clone permissions from the original file
+			await chmod(this.props.file, this.modeAsOctal(this.props.backupPermissions.posixMode), this.props);
 		}
-		return status;
+	}
+
+	private modeAsOctal(octal: number): number {
+		return Number(octal) & 0o777;
 	}
 }
