@@ -1,7 +1,7 @@
+import {type BackupPermission, type IFileBackupProps} from '../interfaces';
 import {type ILoggerLike, LogLevel, MapLogger} from '@avanio/logger-like';
 import {type ApiServiceV1} from '../interfaces/service';
 import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
-import {type IFileBackupProps} from '../interfaces';
 import {type ServiceStatusObject} from '../interfaces/ServiceStatus';
 
 const defaultMapLogLevels = {
@@ -17,7 +17,10 @@ const defaultMapLogLevels = {
 
 export type AbstractLinuxFileDatabaseLogLevels = typeof defaultMapLogLevels;
 
-export type AbstractLinuxFileDatabaseProps<LogLevels extends AbstractLinuxFileDatabaseLogLevels = AbstractLinuxFileDatabaseLogLevels> = IFileBackupProps & {
+export type AbstractLinuxFileDatabaseProps<
+	LogLevels extends AbstractLinuxFileDatabaseLogLevels = AbstractLinuxFileDatabaseLogLevels,
+	Permission extends BackupPermission = BackupPermission,
+> = IFileBackupProps<Permission> & {
 	logger?: ILoggerLike;
 } & {logLevels?: LogLevels};
 
