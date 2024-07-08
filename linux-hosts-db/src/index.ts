@@ -7,14 +7,13 @@ import {
 	type IErrorLike,
 	type IFileBackupProps,
 	isValidLine,
-	type LinuxBackupPermission,
 	parseHostLine,
 	type ServiceStatusObject,
 	validateLinuxHostsEntry,
 } from '@avanio/os-api-shared';
 import {access, chmod, copyFile, type ILinuxSudoOptions, readMakeDbFile, writeMakeDbFile} from '@avanio/os-api-linux-utils';
 
-type LinuxHostsDbProps = Partial<IFileBackupProps<LinuxBackupPermission>> &
+type LinuxHostsDbProps = Partial<IFileBackupProps> &
 	ILinuxSudoOptions & {
 		/**
 		 * NSS database file path
