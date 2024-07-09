@@ -33,6 +33,7 @@ jobs:
     steps:
       - uses: dcarbone/install-jq-action@v2
       - uses: actions/checkout@v4
+      - run: sudo apt-get install -y libnss-db
 
       - name: Get Npm Package Env Variables
         run: bash ../bin/package-envs.sh >> $GITHUB_ENV
