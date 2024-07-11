@@ -18,7 +18,7 @@ export function buildOutput(value: PasswordEntry): string {
 	return data;
 }
 
-export class MockLinuxPasswd extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, PasswordEntry, PasswordFileEntry> {
+export class MockLinuxPasswd extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, PasswordEntry> {
 	public name = 'MockLinuxPasswd';
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [

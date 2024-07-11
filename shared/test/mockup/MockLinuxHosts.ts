@@ -19,7 +19,7 @@ export function buildOutput(value: HostEntry): string {
 	return data;
 }
 
-export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, HostEntry, HostFileEntry> {
+export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, HostEntry> {
 	public name = 'MockLinuxHosts';
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [

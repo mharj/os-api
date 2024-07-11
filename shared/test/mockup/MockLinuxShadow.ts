@@ -18,7 +18,7 @@ export function buildOutput(value: ShadowEntry): string {
 	return data;
 }
 
-export class MockLinuxShadow extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, ShadowEntry, ShadowFileEntry> {
+export class MockLinuxShadow extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, ShadowEntry> {
 	public name = 'MockLinuxShadow';
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [

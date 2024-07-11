@@ -18,7 +18,7 @@ export function buildOutput(value: NssEntry): string {
 	return data;
 }
 
-export class MockLinuxNssConf extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, NssEntry, NssFileEntry> {
+export class MockLinuxNssConf extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, NssEntry> {
 	public name = 'MockLinuxNssConf';
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [
