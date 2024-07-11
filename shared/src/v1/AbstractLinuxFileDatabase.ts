@@ -1,4 +1,5 @@
 import {type BackupPermission, type IFileBackupProps} from '../interfaces';
+import {type BaseEntry, type BaseFileEntry} from '../types/v1/baseEntry';
 import {type ILoggerLike, LogLevel, MapLogger} from '@avanio/logger-like';
 import {type ApiServiceV1} from '../interfaces/service';
 import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
@@ -24,6 +25,8 @@ export type AbstractLinuxFileDatabaseProps<
 	logger?: ILoggerLike;
 } & {logLevels?: LogLevels};
 
+type InferLogLevels<T extends AbstractLinuxFileDatabaseProps> = Exclude<T['logLevels'], undefined>;
+
 const defaultBackupProps = {
 	backup: false,
 	logLevels: defaultMapLogLevels,
@@ -34,19 +37,13 @@ const defaultBackupProps = {
  * Abstract class for file based Linux NSS databases
  * - uses line numbers as location identifier to help checking changes on file based data.
  */
-export abstract class AbstractLinuxFileDatabase<
-		Props extends AbstractLinuxFileDatabaseProps,
-		Entry extends Record<string, unknown>,
-		FileEntry extends Entry & {line: number},
-		Output = string,
-		LogLevels extends Exclude<Props['logLevels'], undefined> = Exclude<Props['logLevels'], undefined>,
-	>
-	implements ICommonApiV1<Entry, FileEntry>, ApiServiceV1
+export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileDatabaseProps, Entry extends BaseEntry, Output = string>
+	implements ICommonApiV1<Entry, BaseFileEntry<Entry>>, ApiServiceV1
 {
 	abstract name: string;
 	public readonly version = 1;
 	protected readonly props: Readonly<Props>;
-	protected logger: MapLogger<LogLevels>;
+	protected logger: MapLogger<InferLogLevels<Props>>;
 
 	constructor(props?: Partial<Props>) {
 		this.props = Object.assign({}, defaultBackupProps, props) as Props;
@@ -57,14 +54,14 @@ export abstract class AbstractLinuxFileDatabase<
 		this.logger.setLogger(logger);
 	}
 
-	public setLogMapping(logLevels: Partial<LogLevels>): void {
+	public setLogMapping(logLevels: Partial<InferLogLevels<Props>>): void {
 		this.logger.setLogMapping(logLevels);
 	}
 
 	/**
 	 * list all entries from hosts
 	 */
-	public async list(): Promise<FileEntry[]> {
+	public async list(): Promise<BaseFileEntry<Entry>[]> {
 		this.logger.logKey('list', `${this.name}: listing entries`);
 		await this.assertOnline();
 		return this.dataToFileEntry(await this.handleRead());
@@ -73,7 +70,7 @@ export abstract class AbstractLinuxFileDatabase<
 	/**
 	 * delete entry
 	 */
-	public async delete(value: FileEntry): Promise<boolean> {
+	public async delete(value: BaseFileEntry<Entry>): Promise<boolean> {
 		this.logger.logKey('delete', `${this.name}: deleting entry`);
 		await this.assertOnline();
 		const data = await this.handleRead();
@@ -114,7 +111,7 @@ export abstract class AbstractLinuxFileDatabase<
 	/**
 	 * replace current entry with new one
 	 */
-	public async replace(current: FileEntry, replace: Entry): Promise<boolean> {
+	public async replace(current: BaseFileEntry<Entry>, replace: Entry): Promise<boolean> {
 		this.logger.logKey('replace', `${this.name}: replacing entry`);
 		await this.assertOnline();
 		this.validateEntry(replace);
@@ -133,11 +130,11 @@ export abstract class AbstractLinuxFileDatabase<
 		throw new Error(`${this.name}: Current entry does not exist`);
 	}
 
-	private dataToFileEntry(data: Output[]): FileEntry[] {
-		return data.reduce<FileEntry[]>((acc, line, index) => {
+	private dataToFileEntry(data: Output[]): BaseFileEntry<Entry>[] {
+		return data.reduce<BaseFileEntry<Entry>[]>((acc, line, index) => {
 			const entry = this.fromOutput(line);
 			if (entry) {
-				acc.push({...entry, line: index} as FileEntry);
+				acc.push({...entry, line: index} as BaseFileEntry<Entry>);
 			}
 			return acc;
 		}, []);
@@ -163,9 +160,9 @@ export abstract class AbstractLinuxFileDatabase<
 	/**
 	 * Handle write operation
 	 */
-	private async handleWrite(data: Output[], value: FileEntry, isDelete: true): Promise<boolean>;
+	private async handleWrite(data: Output[], value: BaseFileEntry<Entry>, isDelete: true): Promise<boolean>;
 	private async handleWrite(data: Output[], value: Entry): Promise<boolean>;
-	private async handleWrite(data: Output[], value: FileEntry, isDelete?: true): Promise<boolean> {
+	private async handleWrite(data: Output[], value: BaseFileEntry<Entry>, isDelete?: true): Promise<boolean> {
 		if (this.props.backup) {
 			this.logger.logKey('create_backup', `${this.name}: creating backup`);
 			await this.createBackup();
@@ -185,8 +182,8 @@ export abstract class AbstractLinuxFileDatabase<
 		return this.loadOutput();
 	}
 
-	private isSameEntryCallback(a: Entry | FileEntry): (b: Entry | FileEntry | undefined) => boolean {
-		return (b: Entry | FileEntry | undefined) => {
+	private isSameEntryCallback(a: Entry | BaseFileEntry<Entry>): (b: Entry | BaseFileEntry<Entry> | undefined) => boolean {
+		return (b: Entry | BaseFileEntry<Entry> | undefined) => {
 			if (!b) {
 				return false;
 			}
@@ -214,7 +211,7 @@ export abstract class AbstractLinuxFileDatabase<
 	 * @throws Error if invalid
 	 */
 	protected abstract validateEntry(entry: Entry): void;
-	protected abstract isSameEntry(a: Entry | FileEntry, b: Entry | FileEntry | undefined): boolean;
+	protected abstract isSameEntry(a: Entry | BaseFileEntry<Entry>, b: Entry | BaseFileEntry<Entry> | undefined): boolean;
 	public abstract status(): ServiceStatusObject | Promise<ServiceStatusObject>;
 	protected abstract toOutput(value: Entry): Output;
 	protected abstract fromOutput(value: Output): Entry | undefined;
@@ -222,7 +219,7 @@ export abstract class AbstractLinuxFileDatabase<
 	protected abstract loadOutput(): Output[] | Promise<Output[]>;
 	/** Verify if the write was successful and value can be found from data */
 	protected abstract verifyWrite(value: Entry): boolean | Promise<boolean>;
-	protected abstract verifyDelete(value: FileEntry): boolean | Promise<boolean>;
+	protected abstract verifyDelete(value: BaseFileEntry<Entry>): boolean | Promise<boolean>;
 	protected abstract createBackup(): void | Promise<void>;
 	protected abstract restoreBackup(): void | Promise<void>;
 }
