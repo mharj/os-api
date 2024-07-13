@@ -8,9 +8,9 @@ export const serviceEntrySchema = z.object({
 	service: z.string().min(1),
 });
 
-export type ServiceEntry = z.infer<typeof serviceEntrySchema>;
+export type ServicesEntry = z.infer<typeof serviceEntrySchema>;
 
-export function validateLinuxServicesEntry(entry: ServiceEntry): void {
+export function validateLinuxServicesEntry(entry: ServicesEntry): void {
 	const parsed = serviceEntrySchema.safeParse(entry);
 	if (!parsed.success) {
 		const issue = parsed.error.issues[0];

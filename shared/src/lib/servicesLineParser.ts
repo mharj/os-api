@@ -1,8 +1,8 @@
 import {normalizeLine, splitCommentString} from './common';
-import {type ServiceEntry, serviceEntrySchema} from '../types/v1/servicesEntry';
+import {type ServicesEntry, serviceEntrySchema} from '../types/v1/servicesEntry';
 import {type ILoggerLike} from '@avanio/logger-like';
 
-export function parseServicesLine(line: string, logger?: ILoggerLike): ServiceEntry | undefined {
+export function parseServicesLine(line: string, logger?: ILoggerLike): ServicesEntry | undefined {
 	const input = normalizeLine(line);
 	if (!input) {
 		logger?.info('Empty line or comment');

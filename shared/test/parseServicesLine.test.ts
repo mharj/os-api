@@ -1,11 +1,11 @@
 /* eslint-disable sort-keys */
 import {describe, expect, it} from '@jest/globals';
 import {parseServicesLine} from '../src/lib/servicesLineParser';
-import {type ServiceEntry} from '../src/types/v1/servicesEntry';
+import {type ServicesEntry} from '../src/types/v1/servicesEntry';
 
 type TestValue = {
 	input: string;
-	output: ServiceEntry | undefined;
+	output: ServicesEntry | undefined;
 };
 
 const validTests: TestValue[] = [
