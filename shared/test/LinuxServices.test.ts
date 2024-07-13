@@ -6,7 +6,7 @@ import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
 import type {ILoggerLike} from '@avanio/logger-like';
 import {MockLinuxHosts, buildOutput} from './mockup/MockLinuxServices';
-import {serviceEntrySchema, type ServiceEntry} from '../src';
+import {servicesEntrySchema, type ServicesEntry} from '../src';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();
@@ -20,14 +20,14 @@ const spyLogger: ILoggerLike = {
 	debug: debugSpy,
 };
 
-const newEntry: ServiceEntry = {
+const newEntry: ServicesEntry = {
 	service: 'testservice',
 	port: 1234,
 	protocol: 'tcp',
 	aliases: ['testalias'],
 };
 
-const brokenEntry: ServiceEntry = {
+const brokenEntry: ServicesEntry = {
 	service: 'testservice',
 	port: -1,
 	protocol: 'tcp',
@@ -41,7 +41,7 @@ describe('Linux Passwd', () => {
 		const data = await testClass.list();
 		data.forEach((e) => {
 			expect(e).not.toBe(undefined);
-			expect(serviceEntrySchema.safeParse(e).success).toBe(true);
+			expect(servicesEntrySchema.safeParse(e).success).toBe(true);
 		});
 	});
 	it('should add entry to list', async () => {

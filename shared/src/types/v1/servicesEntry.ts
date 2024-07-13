@@ -1,6 +1,6 @@
 import {z} from 'zod';
 
-export const serviceEntrySchema = z.object({
+export const servicesEntrySchema = z.object({
 	aliases: z.array(z.string().min(1)),
 	comment: z.string().optional(),
 	port: z.number().min(1),
@@ -8,10 +8,10 @@ export const serviceEntrySchema = z.object({
 	service: z.string().min(1),
 });
 
-export type ServicesEntry = z.infer<typeof serviceEntrySchema>;
+export type ServicesEntry = z.infer<typeof servicesEntrySchema>;
 
 export function validateLinuxServicesEntry(entry: ServicesEntry): void {
-	const parsed = serviceEntrySchema.safeParse(entry);
+	const parsed = servicesEntrySchema.safeParse(entry);
 	if (!parsed.success) {
 		const issue = parsed.error.issues[0];
 		if (issue) {

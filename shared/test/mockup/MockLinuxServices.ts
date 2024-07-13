@@ -3,14 +3,14 @@ import {
 	type AbstractLinuxFileDatabaseProps,
 	type BaseFileEntry,
 	parseServicesLine,
-	type ServiceEntry,
+	type ServicesEntry,
 	servicesLineBuilder,
 	type ServiceStatusObject,
 	validateLinuxServicesEntry,
 } from '../../src/';
 import type {ILoggerLike} from '@avanio/logger-like';
 
-export function buildOutput(value: ServiceEntry): string {
+export function buildOutput(value: ServicesEntry): string {
 	const data = servicesLineBuilder(value);
 	if (parseServicesLine(data) === undefined) {
 		throw new Error(`Invalid output line: ${data}`);
@@ -18,7 +18,7 @@ export function buildOutput(value: ServiceEntry): string {
 	return data;
 }
 
-export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, ServiceEntry> {
+export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, ServicesEntry> {
 	public name = 'MockLinuxHosts';
 	private _state: ServiceStatusObject = {status: 'online'};
 	private _data: string[] = [
@@ -108,11 +108,11 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileD
 		return Promise.resolve(this._state);
 	}
 
-	protected toOutput(value: ServiceEntry): string {
+	protected toOutput(value: ServicesEntry): string {
 		return buildOutput(value);
 	}
 
-	protected fromOutput(value: string): ServiceEntry | undefined {
+	protected fromOutput(value: string): ServicesEntry | undefined {
 		return parseServicesLine(value, this.logger);
 	}
 
@@ -125,22 +125,22 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileD
 		return Promise.resolve([...this._data]);
 	}
 
-	protected isSameEntry(a: ServiceEntry | BaseFileEntry<ServiceEntry>, b: ServiceEntry | BaseFileEntry<ServiceEntry> | undefined): boolean {
+	protected isSameEntry(a: ServicesEntry | BaseFileEntry<ServicesEntry>, b: ServicesEntry | BaseFileEntry<ServicesEntry> | undefined): boolean {
 		if (!b) {
 			return false;
 		}
 		return a.service === b.service && a.port === b.port && a.protocol === b.protocol;
 	}
 
-	protected validateEntry(entry: ServiceEntry): void {
+	protected validateEntry(entry: ServicesEntry): void {
 		validateLinuxServicesEntry(entry);
 	}
 
-	protected verifyWrite(value: ServiceEntry) {
+	protected verifyWrite(value: ServicesEntry) {
 		return this._data.includes(this.toOutput(value));
 	}
 
-	protected verifyDelete(value: ServiceEntry) {
+	protected verifyDelete(value: ServicesEntry) {
 		return !this._data.some((line) => {
 			const entry = this.fromOutput(line);
 			if (!entry) {
