@@ -4,7 +4,6 @@ import {
 	type HostEntry,
 	type HostFileEntry,
 	hostLineBuilder,
-	isValidLine,
 	parseHostLine,
 	type ServiceStatusObject,
 	validateLinuxHostsEntry,
@@ -48,10 +47,7 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileD
 	}
 
 	protected fromOutput(value: string): HostEntry | undefined {
-		if (isValidLine(value)) {
-			return parseHostLine(value, this.logger);
-		}
-		return undefined;
+		return parseHostLine(value, this.logger);
 	}
 
 	protected storeOutput(value: string[]): Promise<void> {

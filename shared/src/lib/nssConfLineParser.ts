@@ -1,7 +1,7 @@
 import {type NssEntry, type NssEntryProvider, type NssEntryProviderAction, nssEntryProviderActionSchema, nssEntrySchema} from '../types/v1/nsSwitchEntry';
 import {getErrorStr} from './zodError';
 import {type ILoggerLike} from '@avanio/logger-like';
-import {isComment} from './common';
+import {normalizeLine} from './common';
 
 /**
  * extract "[STATUS=ACTION]" from provider
@@ -12,11 +12,8 @@ function extractAction(value: string): NssEntryProviderAction | undefined {
 }
 
 export function parseNssConfLine(line: string, logger?: ILoggerLike): NssEntry | undefined {
-	const input = line.trim();
-	if (isComment(input)) {
-		return undefined;
-	}
-	if (input.length === 0) {
+	const input = normalizeLine(line);
+	if (!input) {
 		return undefined;
 	}
 	const [database, raw] = input.split(':', 2);

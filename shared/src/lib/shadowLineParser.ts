@@ -2,7 +2,7 @@
 import {type ShadowEntry, shadowEntrySchema} from '../types/v1/shadowEntry';
 import {getErrorStr} from './zodError';
 import {type ILoggerLike} from '@avanio/logger-like';
-import {isComment} from './common';
+import {normalizeLine} from './common';
 
 function stringIntOrUndefined(value: string): number | undefined {
 	if (value === '') {
@@ -12,11 +12,8 @@ function stringIntOrUndefined(value: string): number | undefined {
 }
 
 export function parseShadowLine(line: string, logger?: ILoggerLike): ShadowEntry | undefined {
-	const input = line.trim();
-	if (isComment(input)) {
-		return undefined;
-	}
-	if (input.length === 0) {
+	const input = normalizeLine(line);
+	if (!input) {
 		return undefined;
 	}
 	const [username, password, changed, min, max, warn, inactive, expire, reserved] = input.split(':');

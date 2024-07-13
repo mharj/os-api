@@ -2,14 +2,11 @@
 import {passwdEntrySchema, type PasswordEntry} from '../types/v1/passwdEntry';
 import {getErrorStr} from './zodError';
 import {type ILoggerLike} from '@avanio/logger-like';
-import {isComment} from './common';
+import {normalizeLine} from './common';
 
 export function parsePasswdLine(line: string, logger?: ILoggerLike): PasswordEntry | undefined {
-	const input = line.trim();
-	if (isComment(input)) {
-		return undefined;
-	}
-	if (input.length === 0) {
+	const input = normalizeLine(line);
+	if (!input) {
 		return undefined;
 	}
 	const [username, password, uid, gid, gecos, home, shell] = input.split(':');

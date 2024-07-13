@@ -207,6 +207,26 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	}
 
 	/**
+	 * Create the database, default is no-op (override to implement)
+	 * @returns true if successful
+	 * @example
+	 * public override async createDatabase(): Promise<boolean> {}
+	 */
+	public createDatabase(): Promise<boolean> {
+		return Promise.resolve(false);
+	}
+
+	/**
+	 * Delete the database, default is no-op (override to implement)
+	 * @returns true if successful
+	 * @example
+	 * public override async deleteDatabase(): Promise<boolean> {}
+	 */
+	public deleteDatabase(): Promise<boolean> {
+		return Promise.resolve(false);
+	}
+
+	/**
 	 * validate entry object data before writing (add/replace)
 	 * @throws Error if invalid
 	 */
