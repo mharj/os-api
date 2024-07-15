@@ -1,4 +1,4 @@
-import {assertNotWindowPlatform} from './lib/platformUtils';
+import {assertPosixPlatform} from './lib/platform';
 import {execFilePromise} from './lib/execFilePromise';
 import type {PosixAccountInput} from './types/posixCommon';
 
@@ -10,13 +10,13 @@ const idCommandError = 'id command not supported on Windows';
  * @returns {Promise<bigint>} - Promise of the user id
  */
 export async function posixAccountId(value: PosixAccountInput): Promise<bigint> {
-	assertNotWindowPlatform(idCommandError);
+	assertPosixPlatform(idCommandError);
 	const data = await execFilePromise('id', ['-u', value.toString()]);
 	return BigInt(data.toString().trim());
 }
 
 export async function posixAccountName(value: PosixAccountInput): Promise<string> {
-	assertNotWindowPlatform(idCommandError);
+	assertPosixPlatform(idCommandError);
 	const data = await execFilePromise('id', ['-nu', value.toString()]);
 	return data.toString().trim();
 }

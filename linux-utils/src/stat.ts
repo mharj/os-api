@@ -1,6 +1,6 @@
 import * as fsPromise from 'fs/promises';
-import {BigIntStats, PathLike} from 'node:fs';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
+import {type BigIntStats, type PathLike} from 'node:fs';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
 import {statSudo} from './lib/statSudo';
 
 /**

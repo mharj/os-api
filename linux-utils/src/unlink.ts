@@ -1,7 +1,16 @@
 import * as fsPromise from 'fs/promises';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
-import {PathLike} from 'node:fs';
-import {unlinkSudo} from './lib/unlinkSudo';
+import {execFilePromise, pathLikeToString} from './lib';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
+import {type PathLike} from 'node:fs';
+
+/**
+ * Delete file with sudo and unlink
+ *
+ * sudo cmd: ['unlink', fileName]
+ */
+export async function unlinkSudo(path: PathLike, options: ILinuxSudoOptions): Promise<void> {
+	await execFilePromise('unlink', [pathLikeToString(path)], undefined, {logFuncName: 'unlinkSudo', ...options});
+}
 
 /**
  * Async remove a file from disk, optionally using sudo

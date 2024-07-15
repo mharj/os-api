@@ -1,7 +1,16 @@
 import * as fsPromise from 'fs/promises';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
-import {PathLike} from 'node:fs';
-import {readFileSudo} from './lib/readFileSudo';
+import {execFilePromise, pathLikeToString} from './lib';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
+import {type PathLike} from 'node:fs';
+
+/**
+ * Async read file with sudo and cat
+ *
+ * sudo cmd: ['cat', fileName]
+ */
+export function readFileSudo(path: PathLike, options: ILinuxSudoOptions): Promise<Buffer> {
+	return execFilePromise('cat', [pathLikeToString(path)], undefined, {logFuncName: 'readFileSudo', ...options});
+}
 
 /**
  * Async read a file from disk, optionally using sudo

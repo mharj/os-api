@@ -1,7 +1,16 @@
 import * as fsPromise from 'fs/promises';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
-import {PathLike} from 'node:fs';
-import {writeFileSudo} from './lib/writeFileSudo';
+import {execFilePromise, pathLikeToString} from './lib';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
+import {type PathLike} from 'node:fs';
+
+/**
+ * Async write file with sudo and tee
+ *
+ * sudo cmd: ['tee', file] < content
+ */
+export async function writeFileSudo(file: PathLike, content: Buffer, options: ILinuxSudoOptions): Promise<void> {
+	await execFilePromise('tee', [pathLikeToString(file)], content, {logFuncName: 'writeFileSudo', ...options});
+}
 
 /**
  * Write a file to disk, optionally using sudo

@@ -1,6 +1,6 @@
-import {BigIntStats, PathLike} from 'node:fs';
-import {getSudoFileLogger, ILinuxSudoOptions, sudoArgs} from './sudoUtils';
+import {type BigIntStats, type PathLike} from 'node:fs';
 import {execFilePromise} from './execFilePromise';
+import {type ILinuxSudoOptions} from './sudoUtils';
 import {pathLikeToString} from './pathUtils';
 
 function strFloatSecToMilliSecs(float: string): number {
@@ -12,9 +12,10 @@ function msToNs(ms: number): bigint {
 }
 
 export async function statSudo(path: PathLike, options: ILinuxSudoOptions): Promise<BigIntStats> {
-	const [cmd, ...args] = sudoArgs(['stat', '-c', '%n %s %b %f %u %g %D %i %h %t %T %.X %.Y %.Z %.W %o', pathLikeToString(path)], options);
-	getSudoFileLogger()?.debug('statSudo:', cmd, args);
-	const buffer = await execFilePromise(cmd, args);
+	const buffer = await execFilePromise('stat', ['-c', '%n %s %b %f %u %g %D %i %h %t %T %.X %.Y %.Z %.W %o', pathLikeToString(path)], undefined, {
+		logFuncName: 'statSudo',
+		...options,
+	});
 	const [_name, size, blocks, rawMode, uid, gid, dev, inode, hardlinks, major, minor, access, modified, status, created, sizeHint] = buffer
 		.toString()
 		.trim()

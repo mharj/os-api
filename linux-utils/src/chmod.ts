@@ -1,7 +1,23 @@
 import * as fsPromise from 'fs/promises';
-import {Mode, PathLike} from 'node:fs';
-import {chmodSudo} from './lib/chmodSudo';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
+import {execFilePromise, pathLikeToString} from './lib';
+import {type Mode, type PathLike} from 'node:fs';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
+
+function octetToString(mode: Mode): string {
+	if (typeof mode === 'string') {
+		return mode;
+	}
+	return mode.toString(8);
+}
+
+/**
+ * Change file or directory mode with sudo and chmod
+ *
+ * sudo cmd: ['chmod', mode, fileName]
+ */
+export async function chmodSudo(path: PathLike, mode: Mode, options: ILinuxSudoOptions): Promise<void> {
+	await execFilePromise('chmod', [octetToString(mode), pathLikeToString(path)], undefined, {logFuncName: 'chmodSudo', ...options});
+}
 
 /**
  * Change file mode, optionally using sudo

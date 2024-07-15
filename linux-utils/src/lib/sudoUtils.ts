@@ -1,4 +1,7 @@
-import {ILoggerLike} from '@avanio/logger-like';
+import * as fs from 'fs';
+import {access} from '../access';
+import {assertPosixPlatform} from './platform';
+import {type ILoggerLike} from '@avanio/logger-like';
 
 let sudoFileLogger: ILoggerLike | undefined;
 
@@ -19,14 +22,29 @@ export interface ILinuxSudoOptions {
 	 * User to sudo as, defaults to root
 	 */
 	sudoUser?: string;
+	/**
+	 * Path to sudo binary, defaults to /usr/bin/sudo
+	 */
 	sudoPath?: string;
 }
 
-export function sudoArgs(args: string[], options: ILinuxSudoOptions) {
-	if (process.platform === 'win32') {
-		throw new Error('sudo not supported on Windows');
+function getSudoPath(options: ILinuxSudoOptions = {}): string {
+	return options.sudoPath || '/usr/bin/sudo';
+}
+
+/**
+ * Asserts that sudo command is available and executable
+ */
+export async function assertSudo(options: ILinuxSudoOptions = {}): Promise<void> {
+	assertPosixPlatform('sudo is not supported on Windows');
+	if (options.sudo) {
+		await access(getSudoPath(options), fs.constants.X_OK);
 	}
-	const sudoPath = options.sudoPath || '/usr/bin/sudo';
+}
+
+export function sudoArgs(args: string[], options: ILinuxSudoOptions): [string, string, ...string[]] {
+	assertSudo();
+	const sudoPath = getSudoPath(options);
 	if (options.sudoUser) {
 		return [sudoPath, '-n', '-u', options.sudoUser, ...args];
 	}

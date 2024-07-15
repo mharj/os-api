@@ -1,7 +1,16 @@
 import * as fsPromise from 'fs/promises';
-import {chownSudo} from './lib/chownSudo';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
-import {PathLike} from 'node:fs';
+import {execFilePromise, pathLikeToString} from './lib';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
+import {type PathLike} from 'node:fs';
+
+/**
+ * Change file mode with sudo and chmod
+ *
+ * sudo cmd: ['chown', `${uid}:${gid}`, fileName]
+ */
+export async function chownSudo(path: PathLike, uid: number, gid: number, options: ILinuxSudoOptions): Promise<void> {
+	await execFilePromise('chown', [`${uid}:${gid}`, pathLikeToString(path)], undefined, {logFuncName: 'chownSudo', ...options});
+}
 
 /**
  * Change file owner and group, optionally with sudo

@@ -1,4 +1,4 @@
-import {assertNotWindowPlatform} from './lib/platformUtils';
+import {assertPosixPlatform} from './lib/platform';
 import {execFilePromise} from './lib/execFilePromise';
 import type {PosixGroupInput} from './types/posixCommon';
 
@@ -10,7 +10,7 @@ const idCommandError = 'id command not supported on Windows';
  * @returns {Promise<bigint>} - Promise of the group id
  */
 export async function posixGroupId(value: PosixGroupInput): Promise<bigint> {
-	assertNotWindowPlatform(idCommandError);
+	assertPosixPlatform(idCommandError);
 	const data = await execFilePromise('id', ['-g', value.toString()]);
 	return BigInt(data.toString().trim());
 }
@@ -21,7 +21,7 @@ export async function posixGroupId(value: PosixGroupInput): Promise<bigint> {
  * @returns {Promise<string>} - Promise of the group name
  */
 export async function posixGroupName(value: PosixGroupInput): Promise<string> {
-	assertNotWindowPlatform(idCommandError);
+	assertPosixPlatform(idCommandError);
 	const data = await execFilePromise('id', ['-ng', value.toString()]);
 	return data.toString().trim();
 }

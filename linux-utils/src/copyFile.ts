@@ -1,7 +1,31 @@
 import * as fsPromise from 'fs/promises';
-import {copyFileSudo} from './lib/copyFileSudo';
-import {ILinuxSudoOptions} from './lib/sudoUtils';
-import {PathLike} from 'node:fs';
+import {constants, type PathLike} from 'node:fs';
+import {execFilePromise, pathLikeToString} from './lib';
+import {accessSudo} from './access';
+import {type ILinuxSudoOptions} from './lib/sudoUtils';
+
+export async function copyFileSudo(src: PathLike, dest: PathLike, mode: number | undefined, options: ILinuxSudoOptions): Promise<void> {
+	if (mode) {
+		switch (mode) {
+			case constants.COPYFILE_EXCL: {
+				try {
+					await accessSudo(dest, constants.F_OK, options);
+					throw new Error(`${pathLikeToString(dest)} already exists`);
+				} catch (err) {
+					// File does not exist, continue
+				}
+				break;
+			}
+			case constants.COPYFILE_FICLONE: {
+				throw new Error('COPYFILE_FICLONE is not supported');
+			}
+			case constants.COPYFILE_FICLONE_FORCE: {
+				throw new Error('COPYFILE_FICLONE_FORCE is not supported');
+			}
+		}
+	}
+	await execFilePromise('cp', ['-f', '--recursive', pathLikeToString(src), pathLikeToString(dest)], undefined, {logFuncName: 'copyFileSudo', ...options});
+}
 
 /**
  * Copy file or directory, optionally with sudo

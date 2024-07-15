@@ -1,4 +1,4 @@
-import {PathLike} from 'node:fs';
+import {type PathLike} from 'node:fs';
 
 /**
  * Build a string from a PathLike

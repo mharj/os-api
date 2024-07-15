@@ -1,4 +1,4 @@
-import {constants, PathLike} from 'fs';
+import {constants, type PathLike} from 'fs';
 import {access} from './access';
 import {type ILinuxSudoOptions} from './lib/sudoUtils';
 

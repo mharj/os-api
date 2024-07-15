@@ -41,6 +41,7 @@
   "author": "mharj",
   "license": "ISC",
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^2.3.0",
     "@types/chai": "^4.3.16",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": "^10.0.7",
@@ -60,7 +61,8 @@
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
     "tsup": "^8.1.0",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "zod": "^3.23.8"
   },
   "dependencies": {
     "@avanio/logger-like": "^0.1.1",
