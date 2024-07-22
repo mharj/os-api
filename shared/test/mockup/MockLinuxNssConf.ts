@@ -1,14 +1,5 @@
-import {
-	AbstractLinuxFileDatabase,
-	type AbstractLinuxFileDatabaseProps,
-	nssConfLineBuilder,
-	type NssEntry,
-	type NssFileEntry,
-	parseNssConfLine,
-	type ServiceStatusObject,
-	validateLinuxNssEntry,
-} from '../../src';
-import {type ILoggerLike} from '@avanio/logger-like';
+import {type DistinctKey, nssConfLineBuilder, type NssEntry, parseNssConfLine, validateLinuxNssEntry} from '../../src';
+import {AbstractLinuxMock} from './AbstractLinuxMock';
 
 export function buildOutput(value: NssEntry): string {
 	const data = nssConfLineBuilder(value);
@@ -18,41 +9,30 @@ export function buildOutput(value: NssEntry): string {
 	return data;
 }
 
-export class MockLinuxNssConf extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, NssEntry> {
-	public name = 'MockLinuxNssConf';
-	private _state: ServiceStatusObject = {status: 'online'};
-	private _data: string[] = [
-		'# /etc/nsswitch.conf',
-		'#',
-		'# Example configuration of GNU Name Service Switch functionality.',
-		'# If you have the glibc-doc-reference and info packages installed, try:',
-		'# info libc "Name Service Switch" for information about this file.',
-		'',
-		'passwd:         files',
-		'group:          files',
-		'shadow:         files',
-		'gshadow:        files',
-		'',
-		'hosts:          files dns',
-		'networks:       files',
-		'',
-		'protocols:      db files',
-		'services:       db files',
-		'ethers:         db files',
-		'rpc:            db files',
-		'',
-		'netgroup:       nis',
-	];
+const rawData = `# /etc/nsswitch.conf
+#
+# Example configuration of GNU Name Service Switch functionality.
+# If you have the 'glibc-doc-reference' and 'info' packages installed, try:
+# 'info libc "Name Service Switch"' for information about this file.
 
-	private _backup: string[] = [];
+passwd:         files
+group:          files
+shadow:         files
+gshadow:        files
 
-	constructor(logger: ILoggerLike) {
-		super({logger});
-	}
+hosts:          files dns
+networks:       files
 
-	public status(): Promise<ServiceStatusObject> {
-		return Promise.resolve(this._state);
-	}
+protocols:      db files
+services:       db files
+ethers:         db files
+rpc:            db files
+
+netgroup:       nis`;
+
+export class MockLinuxNssConf extends AbstractLinuxMock<NssEntry> {
+	public readonly name = 'MockLinuxNssConf';
+	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: NssEntry): string {
 		return buildOutput(value);
@@ -62,16 +42,7 @@ export class MockLinuxNssConf extends AbstractLinuxFileDatabase<AbstractLinuxFil
 		return parseNssConfLine(value, this.logger);
 	}
 
-	protected storeOutput(value: string[]): Promise<void> {
-		this._data = [...value];
-		return Promise.resolve();
-	}
-
-	protected loadOutput(): Promise<string[]> {
-		return Promise.resolve([...this._data]);
-	}
-
-	protected isSameEntry(a: NssEntry | NssFileEntry, b: NssEntry | NssFileEntry | undefined): boolean {
+	protected isSameEntry(a: NssEntry | DistinctKey<NssEntry, number>, b: NssEntry | DistinctKey<NssEntry, number> | undefined): boolean {
 		if (!b) {
 			return false;
 		}
@@ -80,27 +51,5 @@ export class MockLinuxNssConf extends AbstractLinuxFileDatabase<AbstractLinuxFil
 
 	protected validateEntry(entry: NssEntry): void {
 		validateLinuxNssEntry(entry);
-	}
-
-	protected verifyWrite(value: NssEntry) {
-		return this._data.includes(this.toOutput(value));
-	}
-
-	protected verifyDelete(value: NssFileEntry) {
-		return !this._data.some((line) => {
-			const entry = this.fromOutput(line);
-			if (!entry) {
-				return false;
-			}
-			return this.isSameEntry(entry, value);
-		});
-	}
-
-	protected createBackup(): void | Promise<void> {
-		this._backup = [...this._data];
-	}
-
-	protected restoreBackup(): void | Promise<void> {
-		this._data = [...this._backup];
 	}
 }

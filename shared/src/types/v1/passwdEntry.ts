@@ -17,13 +17,6 @@ export const passwdEntrySchema = z.object({
 
 export type PasswordEntry = z.infer<typeof passwdEntrySchema>;
 
-/**
- * Linux password file entry
- */
-export type PasswordFileEntry = PasswordEntry & {
-	readonly line: number;
-};
-
 export function validateLinuxPasswordEntry(entry: PasswordEntry): void {
 	const parsed = passwdEntrySchema.safeParse(entry);
 	if (!parsed.success) {

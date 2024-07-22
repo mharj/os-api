@@ -53,7 +53,7 @@ describe('Linux Passwd', () => {
 	it('should add entry to list', async () => {
 		const newEntryString = buildOutput(newEntry);
 		expect(await testClass.add(newEntry)).toBe(true);
-		const line = (await testClass.listRaw()).find((e) => e === newEntryString);
+		const line = Array.from(await testClass.listRaw()).find(([_line, v]) => v === newEntryString);
 		expect(line).not.toBe(undefined);
 	});
 	it('should replace entry in list', async () => {
@@ -76,7 +76,7 @@ describe('Linux Passwd', () => {
 		if (!currentEntry) {
 			throw new Error('currentEntries is undefined');
 		}
-		await testClass.delete(currentEntry);
+		expect(await testClass.delete(currentEntry)).toBe(true);
 		currentEntry = (await testClass.list()).find((e) => e.username === newEntry.username);
 		expect(currentEntry).toBe(undefined);
 	});

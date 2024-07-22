@@ -1,13 +1,5 @@
-import {
-	AbstractLinuxFileDatabase,
-	type AbstractLinuxFileDatabaseProps,
-	passwdLineBuilder,
-	type PasswordEntry,
-	type PasswordFileEntry,
-	type ServiceStatusObject,
-	validateLinuxPasswordEntry,
-} from '../../src';
-import {type ILoggerLike} from '@avanio/logger-like';
+import {type DistinctKey, passwdLineBuilder, type PasswordEntry, validateLinuxPasswordEntry} from '../../src';
+import {AbstractLinuxMock} from './AbstractLinuxMock';
 import {parsePasswdLine} from '../../src/lib/passwdLineParser';
 
 export function buildOutput(value: PasswordEntry): string {
@@ -18,26 +10,26 @@ export function buildOutput(value: PasswordEntry): string {
 	return data;
 }
 
-export class MockLinuxPasswd extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, PasswordEntry> {
-	public name = 'MockLinuxPasswd';
-	private _state: ServiceStatusObject = {status: 'online'};
-	private _data: string[] = [
-		'# linux passwd file with comments',
-		'root:x:0:0:root:/root:/bin/bash',
-		'daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin',
-		'bin:x:2:2:bin:/bin:/usr/sbin/nologin',
-		'sys:x:3:3:sys:/dev:/usr/sbin/nologin',
-	];
+const rawData = `# linux passwd file with comments
+root:x:0:0:Super User:/root:/bin/bash
+bin:x:1:1:bin:/bin:/usr/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/usr/sbin/nologin
+adm:x:3:4:adm:/var/adm:/usr/sbin/nologin
+lp:x:4:7:lp:/var/spool/lpd:/usr/sbin/nologin
+sync:x:5:0:sync:/sbin:/bin/sync
+shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+halt:x:7:0:halt:/sbin:/sbin/halt
+mail:x:8:12:mail:/var/spool/mail:/usr/sbin/nologin
+operator:x:11:0:operator:/root:/usr/sbin/nologin
+games:x:12:100:games:/usr/games:/usr/sbin/nologin
+ftp:x:14:50:FTP User:/var/ftp:/usr/sbin/nologin
+nobody:x:65534:65534:Kernel Overflow User:/:/usr/sbin/nologin
+tss:x:59:59:Account used for TPM access:/:/usr/sbin/nologin`;
 
-	private _backup: string[] = [];
+export class MockLinuxPasswd extends AbstractLinuxMock<PasswordEntry> {
+	public readonly name = 'MockLinuxPasswd';
 
-	constructor(logger: ILoggerLike) {
-		super({logger});
-	}
-
-	public status(): Promise<ServiceStatusObject> {
-		return Promise.resolve(this._state);
-	}
+	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: PasswordEntry): string {
 		return buildOutput(value);
@@ -47,45 +39,14 @@ export class MockLinuxPasswd extends AbstractLinuxFileDatabase<AbstractLinuxFile
 		return parsePasswdLine(value, this.logger);
 	}
 
-	protected storeOutput(value: string[]): Promise<void> {
-		this._data = [...value];
-		return Promise.resolve();
-	}
-
-	protected loadOutput(): Promise<string[]> {
-		return Promise.resolve([...this._data]);
-	}
-
-	protected validateEntry(entry: PasswordEntry): void {
-		validateLinuxPasswordEntry(entry);
-	}
-
-	protected isSameEntry(a: PasswordEntry | PasswordFileEntry, b: PasswordEntry | PasswordFileEntry | undefined) {
+	protected isSameEntry(a: PasswordEntry | DistinctKey<PasswordEntry, number>, b: PasswordEntry | DistinctKey<PasswordEntry, number> | undefined) {
 		if (!b) {
 			return false;
 		}
 		return a.username === b.username;
 	}
 
-	protected verifyWrite(value: PasswordEntry) {
-		return this._data.includes(this.toOutput(value));
-	}
-
-	protected verifyDelete(value: PasswordFileEntry) {
-		return !this._data.some((line) => {
-			const entry = this.fromOutput(line);
-			if (!entry) {
-				return false;
-			}
-			return this.isSameEntry(entry, value);
-		});
-	}
-
-	protected createBackup(): void | Promise<void> {
-		this._backup = [...this._data];
-	}
-
-	protected restoreBackup(): void | Promise<void> {
-		this._data = [...this._backup];
+	protected validateEntry(entry: PasswordEntry): void {
+		validateLinuxPasswordEntry(entry);
 	}
 }

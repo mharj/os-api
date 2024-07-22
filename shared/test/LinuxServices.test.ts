@@ -5,7 +5,7 @@
 import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
 import type {ILoggerLike} from '@avanio/logger-like';
-import {MockLinuxHosts, buildOutput} from './mockup/MockLinuxServices';
+import {MockLinuxServices, buildOutput} from './mockup/MockLinuxServices';
 import {servicesEntrySchema, type ServicesEntry} from '../src';
 
 const infoSpy = sinon.spy();
@@ -34,7 +34,7 @@ const brokenEntry: ServicesEntry = {
 	aliases: ['testalias'],
 };
 
-const testClass = new MockLinuxHosts(spyLogger);
+const testClass = new MockLinuxServices(spyLogger);
 
 describe('Linux Passwd', () => {
 	it('should get list of entries', async () => {
@@ -47,7 +47,7 @@ describe('Linux Passwd', () => {
 	it('should add entry to list', async () => {
 		const newEntryString = buildOutput(newEntry);
 		expect(await testClass.add(newEntry)).toBe(true);
-		const line = (await testClass.listRaw()).find((e) => e === newEntryString);
+		const line = Array.from(await testClass.listRaw()).find(([_line, v]) => v === newEntryString);
 		expect(line).not.toBe(undefined);
 	});
 	it('should replace entry in list', async () => {

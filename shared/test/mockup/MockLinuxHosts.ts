@@ -1,14 +1,5 @@
-import {
-	AbstractLinuxFileDatabase,
-	type AbstractLinuxFileDatabaseProps,
-	type HostEntry,
-	type HostFileEntry,
-	hostLineBuilder,
-	parseHostLine,
-	type ServiceStatusObject,
-	validateLinuxHostsEntry,
-} from '../../src/';
-import type {ILoggerLike} from '@avanio/logger-like';
+import {type DistinctKey, type HostEntry, hostLineBuilder, parseHostLine, validateLinuxHostsEntry} from '../../src/';
+import {AbstractLinuxMock} from './AbstractLinuxMock';
 
 export function buildOutput(value: HostEntry): string {
 	const data = hostLineBuilder(value);
@@ -18,29 +9,21 @@ export function buildOutput(value: HostEntry): string {
 	return data;
 }
 
-export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileDatabaseProps, HostEntry> {
-	public name = 'MockLinuxHosts';
-	private _state: ServiceStatusObject = {status: 'online'};
-	private _data: string[] = [
-		'127.0.0.1       localhost',
-		'',
-		'# The following lines are desirable for IPv6 capable hosts',
-		'::1     ip6-localhost ip6-loopback',
-	];
+const rawData = `127.0.0.1       localhost
 
-	private _backup: string[] = [];
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
 
-	constructor(logger: ILoggerLike) {
-		super({logger});
-	}
+172.17.0.2      528db6b8a5eb`;
 
-	public setState(state: ServiceStatusObject) {
-		this._state = state;
-	}
+export class MockLinuxHosts extends AbstractLinuxMock<HostEntry> {
+	public readonly name = 'MockLinuxHosts';
 
-	public status(): Promise<ServiceStatusObject> {
-		return Promise.resolve(this._state);
-	}
+	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: HostEntry): string {
 		return buildOutput(value);
@@ -50,16 +33,7 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileD
 		return parseHostLine(value, this.logger);
 	}
 
-	protected storeOutput(value: string[]): Promise<void> {
-		this._data = [...value];
-		return Promise.resolve();
-	}
-
-	protected loadOutput(): Promise<string[]> {
-		return Promise.resolve([...this._data]);
-	}
-
-	protected isSameEntry(a: HostEntry | HostFileEntry, b: HostEntry | HostFileEntry | undefined): boolean {
+	protected isSameEntry(a: HostEntry | DistinctKey<HostEntry, number>, b: HostEntry | DistinctKey<HostEntry, number> | undefined): boolean {
 		if (!b) {
 			return false;
 		}
@@ -68,27 +42,5 @@ export class MockLinuxHosts extends AbstractLinuxFileDatabase<AbstractLinuxFileD
 
 	protected validateEntry(entry: HostEntry): void {
 		validateLinuxHostsEntry(entry);
-	}
-
-	protected verifyWrite(value: HostEntry) {
-		return this._data.includes(this.toOutput(value));
-	}
-
-	protected verifyDelete(value: HostFileEntry) {
-		return !this._data.some((line) => {
-			const entry = this.fromOutput(line);
-			if (!entry) {
-				return false;
-			}
-			return this.isSameEntry(entry, value);
-		});
-	}
-
-	protected createBackup(): void | Promise<void> {
-		this._backup = [...this._data];
-	}
-
-	protected restoreBackup(): void | Promise<void> {
-		this._data = [...this._backup];
 	}
 }

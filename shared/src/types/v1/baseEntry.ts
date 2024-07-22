@@ -1,3 +1,3 @@
 export type BaseEntry = Record<string, unknown>;
 
-export type BaseFileEntry<T extends BaseEntry> = T & {line: number};
+export type DistinctKey<T extends BaseEntry, Key> = T & {_idx: Key};

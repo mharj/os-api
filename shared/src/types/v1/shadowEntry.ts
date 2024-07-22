@@ -19,13 +19,6 @@ export const shadowEntrySchema = z.object({
 
 export type ShadowEntry = z.infer<typeof shadowEntrySchema>;
 
-/**
- * Linux shadow file entry
- */
-export type ShadowFileEntry = ShadowEntry & {
-	readonly line: number;
-};
-
 export function validateLinuxShadowEntry(entry: ShadowEntry): void {
 	const parsed = shadowEntrySchema.safeParse(entry);
 	if (!parsed.success) {

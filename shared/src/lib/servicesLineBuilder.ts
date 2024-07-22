@@ -9,8 +9,14 @@ const defaultOptions: BuilderOptions = {
 
 export function servicesLineBuilder(entry: ServicesEntry, options: BuilderOptions = {}) {
 	const opt = {...defaultOptions, ...options};
+	let output = `${entry.service}${ws(opt)}${entry.port.toString()}/${entry.protocol}`;
+	// aliases
 	if (entry.aliases.length > 0 && !opt.commentsDisabled) {
-		return `${entry.service}${ws(opt)}${entry.port.toString()}/${entry.protocol} ${entry.aliases.join(' ')}${entry.comment ? ' # ' + entry.comment : ''}`;
+		output += ` ${entry.aliases.join('')}`;
 	}
-	return `${entry.service}${ws(opt)}${entry.port.toString()}/${entry.protocol}`;
+	// comment
+	if (entry.comment && !opt.commentsDisabled) {
+		output += ` # ${entry.comment}`;
+	}
+	return output;
 }

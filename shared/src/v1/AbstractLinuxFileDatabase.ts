@@ -1,5 +1,5 @@
 import {type BackupPermission, type IFileBackupProps} from '../interfaces';
-import {type BaseEntry, type BaseFileEntry} from '../types/v1/baseEntry';
+import {type BaseEntry, type DistinctKey} from '../types/v1/baseEntry';
 import {type ILoggerLike, LogLevel, MapLogger} from '@avanio/logger-like';
 import {type ApiServiceV1} from '../interfaces/service';
 import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
@@ -9,12 +9,23 @@ const defaultMapLogLevels = {
 	add: LogLevel.Debug,
 	create_backup: LogLevel.Debug,
 	delete: LogLevel.Debug,
+	entries: LogLevel.None,
 	list: LogLevel.None,
 	load_output: LogLevel.None,
 	replace: LogLevel.Debug,
 	restore_backup: LogLevel.Debug,
 	store_output: LogLevel.Debug,
 } as const;
+
+export type RawDataMap<Key, Output> = Map<Key, Output>;
+
+export type EntryDataMap<Key, Entry> = Map<Key, Entry>;
+
+export type GetDnKeysOptions<Key, Entry> = {
+	value: Entry;
+	data: RawDataMap<Key, Entry>;
+	dn?: Key;
+};
 
 export type AbstractLinuxFileDatabaseLogLevels = typeof defaultMapLogLevels;
 
@@ -37,8 +48,8 @@ const defaultBackupProps = {
  * Abstract class for file based Linux NSS databases
  * - uses line numbers as location identifier to help checking changes on file based data.
  */
-export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileDatabaseProps, Entry extends BaseEntry, Output = string>
-	implements ICommonApiV1<Entry, BaseFileEntry<Entry>>, ApiServiceV1
+export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileDatabaseProps, Entry extends BaseEntry, EntryKey, Output = string>
+	implements ICommonApiV1<Entry, DistinctKey<Entry, EntryKey>>, ApiServiceV1
 {
 	abstract name: string;
 	public readonly version = 1;
@@ -61,80 +72,94 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	/**
 	 * list all entries from hosts
 	 */
-	public async list(): Promise<BaseFileEntry<Entry>[]> {
+	public async list(): Promise<DistinctKey<Entry, EntryKey>[]> {
 		this.logger.logKey('list', `${this.name}: listing entries`);
 		await this.assertOnline();
 		return this.dataToFileEntry(await this.handleRead());
 	}
 
 	/**
-	 * delete entry
+	 * List all entries from database with line numbers as key
 	 */
-	public async delete(value: BaseFileEntry<Entry>): Promise<boolean> {
-		this.logger.logKey('delete', `${this.name}: deleting entry`);
+	public async entries(): Promise<EntryDataMap<EntryKey, Entry>> {
+		this.logger.logKey('entries', `${this.name}: listing entries`);
 		await this.assertOnline();
-		const data = await this.handleRead();
-		// read value from current data and check if it's same as value
-		const currentLine = data[value.line];
-		const entry = currentLine ? this.fromOutput(currentLine) : undefined;
-		if (this.isSameEntry(value, entry)) {
-			data.splice(value.line, 1);
-			return this.handleWrite(data, value, true);
-		}
-		// if not, check if the value is still in the file but on a different line
+		return Array.from((await this.handleRead()).entries()).reduce<EntryDataMap<EntryKey, Entry>>((acc, [index, line]) => {
+			const entry = this.fromOutput(line);
+			if (entry) {
+				acc.set(index, entry);
+			}
+			return acc;
+		}, new Map());
+	}
+
+	private handleNoKeyError(value: DistinctKey<Entry, EntryKey>, data: RawDataMap<EntryKey, Output>): Error {
 		const lostEntry = this.dataToFileEntry(data).find(this.isSameEntryCallback(value));
-		if (lostEntry && value.line !== lostEntry.line) {
-			throw new Error(`${this.name}: might have been changed since the entry was read`);
+		if (lostEntry) {
+			return new Error(`${this.name}: might have been changed since the entry was read`);
 		}
-		return false;
+		return new Error(`${this.name}: Current entry does not exist`);
 	}
 
 	/**
 	 * add new entry
 	 */
-	public async add(value: Entry, index?: number): Promise<boolean> {
+	public async add(value: Entry, dn?: EntryKey): Promise<boolean> {
 		this.logger.logKey('add', `${this.name}: adding entry`);
 		await this.assertOnline();
 		this.validateEntry(value);
-		const lines = await this.handleRead();
-		if (this.dataToFileEntry(lines).some(this.isSameEntryCallback(value))) {
+		const data = await this.handleRead();
+		if (this.dataToFileEntry(data).some(this.isSameEntryCallback(value))) {
 			throw new Error(`${this.name}: Entry already exists`);
 		}
-		if (index === undefined || index > lines.length) {
-			lines.push(this.toOutput(value));
-		} else {
-			lines.splice(index, 0, this.toOutput(value));
+		const writeValue = this.toOutput(value);
+		for (const dnKey of this.getDnKeys({value, data, dn})) {
+			data.set(dnKey, writeValue);
 		}
-		return this.handleWrite(lines, value);
+		return this.handleWrite(data, value);
 	}
 
 	/**
 	 * replace current entry with new one
 	 */
-	public async replace(current: BaseFileEntry<Entry>, replace: Entry): Promise<boolean> {
+	public async replace(orgEntry: DistinctKey<Entry, EntryKey>, value: Entry): Promise<boolean> {
 		this.logger.logKey('replace', `${this.name}: replacing entry`);
 		await this.assertOnline();
-		this.validateEntry(replace);
+		this.validateEntry(value);
 		const data = await this.handleRead();
-		const currentLine = data[current.line];
-		const entry = currentLine ? this.fromOutput(currentLine) : undefined;
-		if (this.isSameEntry(current, entry)) {
-			data[current.line] = this.toOutput(replace);
-			return this.handleWrite(data, replace);
+		const currentKey = Array.from(data.keys()).find(this.isSameKeyCallback(orgEntry._idx));
+		if (currentKey === undefined) {
+			throw this.handleNoKeyError(orgEntry, data);
 		}
-		// if not, check if the value is still in the file but on a different line
-		const lostEntry = this.dataToFileEntry(data).find(this.isSameEntryCallback(current));
-		if (lostEntry && current.line !== lostEntry.line) {
-			throw new Error(`${this.name}: might have been changed since the entry was read`);
+		const writeValue = this.toOutput(value);
+		for (const dnKey of this.getDnKeys({value, data, dn: currentKey})) {
+			data.set(dnKey, writeValue);
 		}
-		throw new Error(`${this.name}: Current entry does not exist`);
+		return this.handleWrite(data, value);
 	}
 
-	private dataToFileEntry(data: Output[]): BaseFileEntry<Entry>[] {
-		return data.reduce<BaseFileEntry<Entry>[]>((acc, line, index) => {
+	/**
+	 * delete entry
+	 */
+	public async delete(value: DistinctKey<Entry, EntryKey>): Promise<boolean> {
+		this.logger.logKey('delete', `${this.name}: deleting entry`);
+		await this.assertOnline();
+		const data = await this.handleRead();
+		const currentKey = Array.from(data.keys()).find(this.isSameKeyCallback(value._idx));
+		if (currentKey === undefined) {
+			throw this.handleNoKeyError(value, data);
+		}
+		for (const dnKey of this.getDnKeys({value, data, dn: currentKey})) {
+			data.delete(dnKey);
+		}
+		return this.handleWrite(data, value, true);
+	}
+
+	private dataToFileEntry(data: RawDataMap<EntryKey, Output>): DistinctKey<Entry, EntryKey>[] {
+		return Array.from(data.entries()).reduce<DistinctKey<Entry, EntryKey>[]>((acc, [dn, line]) => {
 			const entry = this.fromOutput(line);
 			if (entry) {
-				acc.push({...entry, line: index} as BaseFileEntry<Entry>);
+				acc.push({...entry, _idx: dn});
 			}
 			return acc;
 		}, []);
@@ -143,8 +168,8 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	/**
 	 * list raw stored Output type data
 	 */
-	public async listRaw(): Promise<Output[]> {
-		return await this.handleRead();
+	public listRaw(): RawDataMap<EntryKey, Output> | Promise<RawDataMap<EntryKey, Output>> {
+		return this.handleRead();
 	}
 
 	/**
@@ -160,9 +185,9 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	/**
 	 * Handle write operation
 	 */
-	private async handleWrite(data: Output[], value: BaseFileEntry<Entry>, isDelete: true): Promise<boolean>;
-	private async handleWrite(data: Output[], value: Entry): Promise<boolean>;
-	private async handleWrite(data: Output[], value: BaseFileEntry<Entry>, isDelete?: true): Promise<boolean> {
+	private async handleWrite(data: RawDataMap<EntryKey, Output>, value: DistinctKey<Entry, EntryKey>, isDelete: true): Promise<boolean>;
+	private async handleWrite(data: RawDataMap<EntryKey, Output>, value: Entry): Promise<boolean>;
+	private async handleWrite(data: RawDataMap<EntryKey, Output>, value: DistinctKey<Entry, EntryKey>, isDelete?: true): Promise<boolean> {
 		if (this.props.backup) {
 			this.logger.logKey('create_backup', `${this.name}: creating backup`);
 			await this.createBackup();
@@ -177,18 +202,22 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 		return isVerified;
 	}
 
-	private handleRead(): Output[] | Promise<Output[]> {
+	private handleRead(): RawDataMap<EntryKey, Output> | Promise<RawDataMap<EntryKey, Output>> {
 		this.logger.logKey('load_output', `${this.name}: loading output`);
 		return this.loadOutput();
 	}
 
-	private isSameEntryCallback(a: Entry | BaseFileEntry<Entry>): (b: Entry | BaseFileEntry<Entry> | undefined) => boolean {
-		return (b: Entry | BaseFileEntry<Entry> | undefined) => {
+	private isSameEntryCallback(a: Entry | DistinctKey<Entry, EntryKey>): (b: Entry | DistinctKey<Entry, EntryKey> | undefined) => boolean {
+		return (b: Entry | DistinctKey<Entry, EntryKey> | undefined) => {
 			if (!b) {
 				return false;
 			}
 			return this.isSameEntry(a, b);
 		};
+	}
+
+	private isSameKeyCallback(a: EntryKey): (b: EntryKey) => boolean {
+		return (b: EntryKey) => this.isSameKey(a, b);
 	}
 
 	private async assertOnline(): Promise<void> {
@@ -231,15 +260,17 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	 * @throws Error if invalid
 	 */
 	protected abstract validateEntry(entry: Entry): void;
-	protected abstract isSameEntry(a: Entry | BaseFileEntry<Entry>, b: Entry | BaseFileEntry<Entry> | undefined): boolean;
+	protected abstract isSameEntry(a: Entry | DistinctKey<Entry, EntryKey>, b: Entry | DistinctKey<Entry, EntryKey> | undefined): boolean;
+	protected abstract isSameKey(a: EntryKey, b: EntryKey): boolean;
 	public abstract status(): ServiceStatusObject | Promise<ServiceStatusObject>;
 	protected abstract toOutput(value: Entry): Output;
 	protected abstract fromOutput(value: Output): Entry | undefined;
-	protected abstract storeOutput(value: Output[]): void | Promise<void>;
-	protected abstract loadOutput(): Output[] | Promise<Output[]>;
+	protected abstract storeOutput(value: RawDataMap<EntryKey, Output>): void | Promise<void>;
+	protected abstract loadOutput(): RawDataMap<EntryKey, Output> | Promise<RawDataMap<EntryKey, Output>>;
 	/** Verify if the write was successful and value can be found from data */
 	protected abstract verifyWrite(value: Entry): boolean | Promise<boolean>;
-	protected abstract verifyDelete(value: BaseFileEntry<Entry>): boolean | Promise<boolean>;
+	protected abstract verifyDelete(value: DistinctKey<Entry, EntryKey>): boolean | Promise<boolean>;
 	protected abstract createBackup(): void | Promise<void>;
 	protected abstract restoreBackup(): void | Promise<void>;
+	protected abstract getDnKeys(dnOptions: {value: Entry; data: RawDataMap<EntryKey, Output>; dn?: EntryKey}): EntryKey[];
 }

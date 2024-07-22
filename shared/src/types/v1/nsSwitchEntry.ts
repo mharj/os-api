@@ -40,10 +40,6 @@ export const nssEntrySchema = z.object({
 
 export type NssEntry = z.infer<typeof nssEntrySchema>;
 
-export type NssFileEntry = NssEntry & {
-	readonly line: number;
-};
-
 export function validateLinuxNssEntry(entry: NssEntry): void {
 	const parsed = nssEntrySchema.safeParse(entry);
 	if (!parsed.success) {

@@ -14,10 +14,6 @@ export const hostEntrySchema = z.object({
 
 export type HostEntry = z.infer<typeof hostEntrySchema>;
 
-export type HostFileEntry = HostEntry & {
-	readonly line: number;
-};
-
 export function validateLinuxHostsEntry(entry: HostEntry): void {
 	const parsed = hostEntrySchema.safeParse(entry);
 	if (!parsed.success) {
