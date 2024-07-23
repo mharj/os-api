@@ -85,7 +85,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 		this.logger.logKey('entries', `${this.name}: listing entries`);
 		await this.assertOnline();
 		return Array.from((await this.handleRead()).entries()).reduce<EntryDataMap<EntryKey, Entry>>((acc, [index, line]) => {
-			const entry = this.fromOutput(line);
+			const entry = this.fromOutput(line, index);
 			if (entry) {
 				acc.set(index, entry);
 			}
@@ -157,7 +157,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 
 	private dataToFileEntry(data: RawDataMap<EntryKey, Output>): DistinctKey<Entry, EntryKey>[] {
 		return Array.from(data.entries()).reduce<DistinctKey<Entry, EntryKey>[]>((acc, [dn, line]) => {
-			const entry = this.fromOutput(line);
+			const entry = this.fromOutput(line, dn);
 			if (entry) {
 				acc.push({...entry, _idx: dn});
 			}
@@ -264,7 +264,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	protected abstract isSameKey(a: EntryKey, b: EntryKey): boolean;
 	public abstract status(): ServiceStatusObject | Promise<ServiceStatusObject>;
 	protected abstract toOutput(value: Entry): Output;
-	protected abstract fromOutput(value: Output): Entry | undefined;
+	protected abstract fromOutput(value: Output, dn: EntryKey): Entry | undefined;
 	protected abstract storeOutput(value: RawDataMap<EntryKey, Output>): void | Promise<void>;
 	protected abstract loadOutput(): RawDataMap<EntryKey, Output> | Promise<RawDataMap<EntryKey, Output>>;
 	/** Verify if the write was successful and value can be found from data */
