@@ -60,6 +60,14 @@ export abstract class AbstractLinuxMock<Entry extends BaseEntry> extends Abstrac
 		return a === b;
 	}
 
+	protected getEntryKeyAsString(key: number): string {
+		return key.toString();
+	}
+
+	protected getEntryRawValueAsString(value: string): string {
+		return value;
+	}
+
 	protected abstract override toOutput(value: Entry): string;
 
 	protected abstract override fromOutput(value: string): Entry | undefined;

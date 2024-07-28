@@ -7,12 +7,15 @@ import {type ServiceStatusObject} from '../interfaces/ServiceStatus';
 
 const defaultMapLogLevels = {
 	add: LogLevel.Debug,
+	assert_online: LogLevel.None,
 	create_backup: LogLevel.Debug,
 	delete: LogLevel.Debug,
 	entries: LogLevel.None,
 	list: LogLevel.None,
 	load_output: LogLevel.None,
+	no_key_error: LogLevel.None,
 	replace: LogLevel.Debug,
+	replace_key_value: LogLevel.None,
 	restore_backup: LogLevel.Debug,
 	store_output: LogLevel.Debug,
 } as const;
@@ -61,7 +64,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 		this.logger = new MapLogger(this.props.logger, {...defaultMapLogLevels, ...props?.logLevels});
 	}
 
-	public setLogger(logger: ILoggerLike): void {
+	public setLogger(logger: ILoggerLike | undefined): void {
 		this.logger.setLogger(logger);
 	}
 
@@ -102,6 +105,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	}
 
 	private handleNoKeyError(value: DistinctKey<Entry, EntryKey>, data: RawDataMap<EntryKey, Output>): Error {
+		this.logger.logKey('no_key_error', `${this.name}: no key error`);
 		const lostEntry = this.dataToFileEntry(data).find(this.isSameEntryCallback(value));
 		if (lostEntry) {
 			return new Error(`${this.name}: might have been changed since the entry was read`);
@@ -140,7 +144,13 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 			throw this.handleNoKeyError(orgEntry, data);
 		}
 		const writeValue = this.toOutput(value);
-		for (const dnKey of this.getDnKeys({value, data, dn: currentKey})) {
+		const dnKeys = this.getDnKeys({value, data, dn: currentKey});
+
+		for (const dnKey of dnKeys) {
+			this.logger.logKey(
+				'replace_key_value',
+				`${this.name}: replacing entry = key: ${this.getEntryKeyAsString(dnKey)}: ${this.getEntryRawValueAsString(writeValue)}`,
+			);
 			data.set(dnKey, writeValue);
 		}
 		return this.handleWrite(data, value);
@@ -229,7 +239,9 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	}
 
 	private async assertOnline(): Promise<void> {
+		this.logger.logKey('assert_online', `${this.name}: asserting online`);
 		const res = await this.status();
+		this.logger.logKey('assert_online', `${this.name}: asserting online = ${res.status.toString()}`);
 		if (res.status !== 'online') {
 			throw new Error(`${this.name} is not online: ${String(res.status)}`);
 		}
@@ -281,4 +293,6 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	protected abstract createBackup(): void | Promise<void>;
 	protected abstract restoreBackup(): void | Promise<void>;
 	protected abstract getDnKeys(dnOptions: {value: Entry; data: RawDataMap<EntryKey, Output>; dn?: EntryKey}): EntryKey[];
+	protected abstract getEntryKeyAsString(key: EntryKey): string;
+	protected abstract getEntryRawValueAsString(value: Output): string;
 }
