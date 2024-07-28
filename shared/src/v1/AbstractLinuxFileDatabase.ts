@@ -1,6 +1,6 @@
 import {type BackupPermission, type IFileBackupProps} from '../interfaces';
 import {type BaseEntry, type DistinctKey} from '../types/v1/baseEntry';
-import {type ILoggerLike, LogLevel, LogLevelValue, MapLogger} from '@avanio/logger-like';
+import {type ILoggerLike, LogLevel, type LogLevelValue, MapLogger} from '@avanio/logger-like';
 import {type ApiServiceV1} from '../interfaces/service';
 import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {type ServiceStatusObject} from '../interfaces/ServiceStatus';
