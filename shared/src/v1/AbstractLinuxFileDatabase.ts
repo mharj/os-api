@@ -1,6 +1,6 @@
 import {type BackupPermission, type IFileBackupProps} from '../interfaces';
 import {type BaseEntry, type DistinctKey} from '../types/v1/baseEntry';
-import {type ILoggerLike, LogLevel, MapLogger} from '@avanio/logger-like';
+import {type ILoggerLike, LogLevel, LogLevelValue, MapLogger} from '@avanio/logger-like';
 import {type ApiServiceV1} from '../interfaces/service';
 import {type ICommonApiV1} from '../interfaces/v1/ICommonApiV1';
 import {type ServiceStatusObject} from '../interfaces/ServiceStatus';
@@ -67,6 +67,14 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 
 	public setLogMapping(logLevels: Partial<InferLogLevels<Props>>): void {
 		this.logger.setLogMapping(logLevels);
+	}
+
+	public allLogMapSet(level: LogLevelValue) {
+		this.logger.allLogMapSet(level);
+	}
+
+	public allLogMapReset() {
+		this.logger.allLogMapReset();
 	}
 
 	/**
