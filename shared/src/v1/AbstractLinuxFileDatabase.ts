@@ -288,7 +288,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	protected abstract storeOutput(value: RawDataMap<EntryKey, Output>): void | Promise<void>;
 	protected abstract loadOutput(): RawDataMap<EntryKey, Output> | Promise<RawDataMap<EntryKey, Output>>;
 	/** Verify if the write was successful and value can be found from data */
-	protected abstract verifyWrite(value: Entry): boolean | Promise<boolean>;
+	protected abstract verifyWrite(value: DistinctKey<Entry, EntryKey>): boolean | Promise<boolean>;
 	protected abstract verifyDelete(value: DistinctKey<Entry, EntryKey>): boolean | Promise<boolean>;
 	protected abstract createBackup(): void | Promise<void>;
 	protected abstract restoreBackup(): void | Promise<void>;
