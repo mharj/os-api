@@ -121,12 +121,16 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 		await this.assertOnline();
 		this.validateEntry(value);
 		const data = await this.handleRead();
+		const originalSize = data.size;
 		if (this.dataToFileEntry(data).some(this.isSameEntryCallback(value))) {
 			throw new Error(`${this.name}: Entry already exists`);
 		}
 		const writeValue = this.toOutput(value);
 		for (const dnKey of this.getDnKeys({value, data, dn})) {
 			data.set(dnKey, writeValue);
+		}
+		if (data.size <= originalSize) {
+			throw new Error(`${this.name}: data size didn't increase while adding entry`);
 		}
 		return this.handleWrite(data, value);
 	}
@@ -139,6 +143,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 		await this.assertOnline();
 		this.validateEntry(value);
 		const data = await this.handleRead();
+		const originalSize = data.size;
 		const currentKey = Array.from(data.keys()).find(this.isSameKeyCallback(orgEntry._idx));
 		if (currentKey === undefined) {
 			throw this.handleNoKeyError(orgEntry, data);
@@ -153,6 +158,9 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 			);
 			data.set(dnKey, writeValue);
 		}
+		if (data.size !== originalSize) {
+			throw new Error(`${this.name}: data size changed while replacing entry`);
+		}
 		return this.handleWrite(data, value);
 	}
 
@@ -163,12 +171,16 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 		this.logger.logKey('delete', `${this.name}: deleting entry`);
 		await this.assertOnline();
 		const data = await this.handleRead();
+		const originalSize = data.size;
 		const currentKey = Array.from(data.keys()).find(this.isSameKeyCallback(value._idx));
 		if (currentKey === undefined) {
 			throw this.handleNoKeyError(value, data);
 		}
 		for (const dnKey of this.getDnKeys({value, data, dn: currentKey})) {
 			data.delete(dnKey);
+		}
+		if (data.size >= originalSize) {
+			throw new Error(`${this.name}: data size didn't decrease while deleting entry`);
 		}
 		return this.handleWrite(data, value, true);
 	}
@@ -288,7 +300,7 @@ export abstract class AbstractLinuxFileDatabase<Props extends AbstractLinuxFileD
 	protected abstract storeOutput(value: RawDataMap<EntryKey, Output>): void | Promise<void>;
 	protected abstract loadOutput(): RawDataMap<EntryKey, Output> | Promise<RawDataMap<EntryKey, Output>>;
 	/** Verify if the write was successful and value can be found from data */
-	protected abstract verifyWrite(value: DistinctKey<Entry, EntryKey>): boolean | Promise<boolean>;
+	protected abstract verifyWrite(value: Entry): boolean | Promise<boolean>;
 	protected abstract verifyDelete(value: DistinctKey<Entry, EntryKey>): boolean | Promise<boolean>;
 	protected abstract createBackup(): void | Promise<void>;
 	protected abstract restoreBackup(): void | Promise<void>;
