@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable sort-imports */
-/* eslint-disable sort-keys */
-/* eslint-disable no-unused-expressions */
-import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
-import {parseNssConfLine} from '../src/lib/nssConfLineParser';
+import {describe, expect, it} from 'vitest';
+import {type NssEntry, parseNssConfLine} from '../src';
 import type {ILoggerLike} from '@avanio/logger-like';
-import {type NssEntry} from '../src';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();
@@ -72,7 +68,7 @@ describe('parseNssConfLine', function () {
 	it('should parse valid lines', function () {
 		validHostTest.forEach(({input, output}) => {
 			const entry = parseNssConfLine(input);
-			expect(entry).not.toBeUndefined;
+			expect(entry).not.toBe(undefined);
 			expect(JSON.stringify(entry)).toBe(JSON.stringify(output));
 		});
 	});
@@ -80,7 +76,7 @@ describe('parseNssConfLine', function () {
 		brokenHostTest.forEach(({input, output, infoCount, infoMessages}) => {
 			infoSpy.resetHistory();
 			const entry = parseNssConfLine(input, spyLogger);
-			expect(entry).toBeUndefined;
+			expect(entry).toBe(undefined);
 			expect(entry).toBe(output);
 			expect(infoSpy.callCount).toBe(infoCount);
 			expect(infoSpy.getCalls().map((call) => call.args[0])).toEqual(infoMessages);

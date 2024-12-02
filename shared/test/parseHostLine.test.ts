@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable sort-imports */
-/* eslint-disable sort-keys */
-/* eslint-disable no-unused-expressions */
-import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
-import {parseHostLine} from '../src/lib/hostLineParser';
+import {describe, expect, it} from 'vitest';
 import {type HostEntry} from '../src/types/v1/hostEntry';
 import type {ILoggerLike} from '@avanio/logger-like';
+import {parseHostLine} from '../src/lib/hostLineParser';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();

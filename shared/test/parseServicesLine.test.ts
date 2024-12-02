@@ -1,5 +1,4 @@
-/* eslint-disable sort-keys */
-import {describe, expect, it} from '@jest/globals';
+import {describe, expect, it} from 'vitest';
 import {parseServicesLine} from '../src/lib/servicesLineParser';
 import {type ServicesEntry} from '../src/types/v1/servicesEntry';
 

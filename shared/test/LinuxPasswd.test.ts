@@ -1,12 +1,9 @@
 /* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable sort-imports */
-/* eslint-disable sort-keys */
-/* eslint-disable no-unused-expressions */
-import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
-import type {ILoggerLike} from '@avanio/logger-like';
-import {MockLinuxPasswd, buildOutput} from './mockup/MockLinuxPasswd';
+import {buildOutput, MockLinuxPasswd} from './mockup/MockLinuxPasswd';
+import {describe, expect, it} from 'vitest';
 import {passwdEntrySchema, type PasswordEntry} from '../src';
+import type {ILoggerLike} from '@avanio/logger-like';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();

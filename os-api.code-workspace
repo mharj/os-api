@@ -29,6 +29,9 @@
 		},
 		{
 			"path": ".github"
+		},
+		{
+			"path": "linux-db"
 		}
 	],
 	"settings": {}

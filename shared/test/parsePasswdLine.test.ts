@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable sort-imports */
-/* eslint-disable sort-keys */
-/* eslint-disable no-unused-expressions */
-import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
+import {describe, expect, it} from 'vitest';
+import type {ILoggerLike} from '@avanio/logger-like';
 import {parsePasswdLine} from '../src/lib/passwdLineParser';
 import {type PasswordEntry} from '../src/types/v1/passwdEntry';
-import type {ILoggerLike} from '@avanio/logger-like';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();

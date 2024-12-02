@@ -1,11 +1,8 @@
-/* eslint-disable sort-imports */
-/* eslint-disable sort-keys */
-/* eslint-disable no-unused-expressions */
-import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
+import {buildOutput, MockLinuxHosts} from './mockup/MockLinuxHosts';
+import {describe, expect, it} from 'vitest';
+import {type HostEntry, hostEntrySchema} from '../src/';
 import type {ILoggerLike} from '@avanio/logger-like';
-import {MockLinuxHosts, buildOutput} from './mockup/MockLinuxHosts';
-import {hostEntrySchema, type HostEntry} from '../src/types/v1/hostEntry';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();

@@ -29,7 +29,7 @@
 			{
 				"caseSensitive": false,
 				"natural": true,
-				"minKeys": 5
+				"minKeys": 10
 			}
 		],
 		"no-unused-vars": "off",

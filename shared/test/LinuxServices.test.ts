@@ -1,12 +1,9 @@
 /* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable sort-imports */
-/* eslint-disable sort-keys */
-/* eslint-disable no-unused-expressions */
-import {describe, expect, it} from '@jest/globals';
 import * as sinon from 'sinon';
+import {buildOutput, MockLinuxServices} from './mockup/MockLinuxServices';
+import {describe, expect, it} from 'vitest';
+import {type ServicesEntry, servicesEntrySchema} from '../src';
 import type {ILoggerLike} from '@avanio/logger-like';
-import {MockLinuxServices, buildOutput} from './mockup/MockLinuxServices';
-import {servicesEntrySchema, type ServicesEntry} from '../src';
 
 const infoSpy = sinon.spy();
 const warnSpy = sinon.spy();

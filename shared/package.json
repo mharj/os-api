@@ -7,17 +7,18 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
     "build": "tsup src/index.ts --sourcemap --format cjs,esm --dts --clean",
-    "watch": "tsc -w",
+    "watch": "tsup src/index.ts --watch --sourcemap --format cjs,esm --dts",
     "prepublishOnly": "npm run build",
-    "test": "jest",
-    "lint": "eslint .",
+    "test": "vitest test --run --no-isolate --coverage",
+    "coverage": "vitest test --run --no-isolate --reporter=dot --coverage --coverage.reporter=lcov",
+    "lint": "eslint . --ext .ts",
     "validate": "tsc --noEmit --project tsconfig.test.json"
   },
   "files": [
@@ -42,31 +43,32 @@
   "author": "mharj",
   "license": "ISC",
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "@stylistic/eslint-plugin": "^2.3.0",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^18.19.39",
+    "@avanio/logger-like": "^0.2.7",
+    "@stylistic/eslint-plugin": "^2.11.0",
+    "@stylistic/eslint-plugin-ts": "^2.11.0",
+    "@types/node": "^18.19.67",
     "@types/sinon": "^17.0.3",
-    "@typescript-eslint/eslint-plugin": "^7.16.1",
-    "@typescript-eslint/parser": "^7.16.1",
-    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "@vitest/coverage-v8": "^2.1.6",
+    "c8": "^10.1.2",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-sonarjs": "^0.23.0",
-    "jest": "^29.7.0",
-    "prettier": "^3.3.3",
-    "sinon": "^18.0.0",
-    "source-map-support": "^0.5.21",
-    "ts-jest": "^29.2.3",
-    "ts-node": "^10.9.2",
-    "tslib": "^2.6.3",
-    "tsup": "^8.1.2",
-    "typescript": "^5.5.3"
-  },
-  "dependencies": {
-    "@avanio/logger-like": "^0.2.0",
+    "prettier": "^3.4.1",
+    "sinon": "^19.0.2",
+    "tslib": "^2.8.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.2",
+    "vitest": "^2.1.6",
     "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "@avanio/logger-like": "^0.1 || ^0.2",
+    "zod": "^3.x"
   }
 }
