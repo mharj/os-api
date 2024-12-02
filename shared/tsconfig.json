@@ -1,11 +1,11 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "preserve",
 		"target": "es2019",
 		"lib": ["es2020", "DOM"],
 		"rootDir": "./src",
 		"outDir": "./dist",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"sourceRoot": "./src",
 		"types": ["node"],
 		"declaration": true,
