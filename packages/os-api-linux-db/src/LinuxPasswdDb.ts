@@ -1,5 +1,5 @@
+import {type DistinctKey, type PasswordEntry, parsePasswdLine, passwdLineBuilder, type RawDataMap, validateLinuxPasswordEntry} from '@avanio/os-api-shared';
 import {AbstractMakeDbDatabase, type AbstractMakeDbDatabaseProps, type MakeDbKey} from './AbstractMakeDbDatabase';
-import {type DistinctKey, parsePasswdLine, passwdLineBuilder, type PasswordEntry, type RawDataMap, validateLinuxPasswordEntry} from '@avanio/os-api-shared';
 
 const initialProps = {
 	backup: false,
@@ -11,7 +11,7 @@ const initialProps = {
 
 export class LinuxPasswdDb extends AbstractMakeDbDatabase<AbstractMakeDbDatabaseProps, PasswordEntry> {
 	public readonly name = 'LinuxPasswdDb';
-	constructor(props: Partial<AbstractMakeDbDatabaseProps> = {}) {
+	public constructor(props: Partial<AbstractMakeDbDatabaseProps> = {}) {
 		super(Object.assign({}, initialProps, props));
 	}
 

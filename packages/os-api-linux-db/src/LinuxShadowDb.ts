@@ -1,5 +1,5 @@
-import {AbstractMakeDbDatabase, type AbstractMakeDbDatabaseProps, type MakeDbKey} from './AbstractMakeDbDatabase';
 import {type DistinctKey, parseShadowLine, type RawDataMap, type ShadowEntry, shadowLineBuilder, validateLinuxShadowEntry} from '@avanio/os-api-shared';
+import {AbstractMakeDbDatabase, type AbstractMakeDbDatabaseProps, type MakeDbKey} from './AbstractMakeDbDatabase';
 
 const initialProps = {
 	backup: false,
@@ -12,7 +12,7 @@ const initialProps = {
 export class LinuxShadowDb extends AbstractMakeDbDatabase<AbstractMakeDbDatabaseProps, ShadowEntry> {
 	public readonly name = 'LinuxShadowDb';
 
-	constructor(props: Partial<AbstractMakeDbDatabaseProps> = {}) {
+	public constructor(props: Partial<AbstractMakeDbDatabaseProps> = {}) {
 		super(Object.assign({}, initialProps, props));
 	}
 

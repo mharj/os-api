@@ -1,6 +1,6 @@
 export type EqualKey = `=${number}` | `=${number}/${string}` | `=${string}` | `=${string}/${string}`;
 
-export const equalStringParser = /^(=\S+)\s+(.*?)$/; // =key rest of the line
+export const equalStringParser: RegExp = /^(=\S+)\s+(.*?)$/; // =key rest of the line
 
 export function parseEqualKey(value: string): [EqualKey, string] | undefined {
 	const match = value.match(equalStringParser);

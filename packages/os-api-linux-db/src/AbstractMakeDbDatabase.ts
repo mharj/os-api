@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import {access, chmod, copyFile, type ILinuxSudoOptions, readMakeDbFile, test, unlink, writeMakeDbFile} from '@avanio/os-api-linux-utils';
 import {
 	AbstractLinuxFileDatabase,
 	type AbstractLinuxFileDatabaseProps,
@@ -11,14 +11,14 @@ import {
 	type RawDataMap,
 	type ServiceStatusObject,
 } from '@avanio/os-api-shared';
-import {access, chmod, copyFile, type ILinuxSudoOptions, readMakeDbFile, test, unlink, writeMakeDbFile} from '@avanio/os-api-linux-utils';
+import * as fs from 'fs';
 import {type DotKey, parseDotKey} from './dotKey';
 import {type EqualKey, parseEqualKey} from './equalKey';
 import {parseIndexKey} from './indexKey';
 
 export type MakeDbKey = EqualKey | DotKey | number;
 
-export const parsePrimaryKey = /^\d+$/;
+export const parsePrimaryKey: RegExp = /^\d+$/;
 
 export type AbstractMakeDbDatabaseProps = AbstractLinuxFileDatabaseProps &
 	ILinuxSudoOptions &
@@ -36,13 +36,13 @@ export abstract class AbstractMakeDbDatabase<Props extends AbstractMakeDbDatabas
 		try {
 			// check if we can access the file and have write access
 			await access(this.props.file, fs.constants.W_OK, this.props);
-		} catch (e) {
+		} catch (_e) {
 			errors.push({name: 'FileError', message: `no db file ${this.props.file} found or write access denied`});
 		}
 		try {
 			// check if we can access the makedb executable and have execute access
 			await access(this.props.makedb, fs.constants.X_OK, this.props);
-		} catch (e) {
+		} catch (_e) {
 			errors.push({name: 'FileError', message: `no makedb executable found from ${this.props.makedb} or access denied`});
 		}
 		if (errors.length > 0) {

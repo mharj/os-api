@@ -1,4 +1,4 @@
-export const numberCountParser = /^(\d+)\s+(.*?)$/; // counter rest of the line
+export const numberCountParser: RegExp = /^(\d+)\s+(.*?)$/; // counter rest of the line
 
 export function parseIndexKey(value: string): [number, string] | undefined {
 	const match = value.match(numberCountParser);

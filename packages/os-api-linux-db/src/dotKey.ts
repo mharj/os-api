@@ -1,6 +1,6 @@
 export type DotKey = `.${string}` | `.${string}/${string}`;
 
-export const dotStringParser = /^(\.\S+)\s+(.*?)$/; // .key rest of the line
+export const dotStringParser: RegExp = /^(\.\S+)\s+(.*?)$/; // .key rest of the line
 
 export function parseDotKey(value: string): [DotKey, string] | undefined {
 	const match = value.match(dotStringParser);

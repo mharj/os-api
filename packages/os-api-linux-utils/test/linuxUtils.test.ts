@@ -17,8 +17,8 @@ describe('linux utils', {skip: isWindowsPlatform()}, () => {
 		expect((await readFile('./test.txt', sudoParams)).toString()).to.be.eq('demo');
 	});
 	it('should access text file', async () => {
-		await expect(async () => access('./test.txt', fs.constants.R_OK, sudoParams)).resolves.toBe(undefined);
-		await expect(async () => access('./none.txt', fs.constants.R_OK, sudoParams)).rejects.toThrow('some error');
+		await expect(access('./test.txt', fs.constants.R_OK, sudoParams)).resolves.toBe(undefined);
+		await expect(access('./none.txt', fs.constants.R_OK, sudoParams)).rejects.toThrow('some error');
 	});
 	it('should get stats of text file', async () => {
 		const linuxStats = await stat('./test.txt', sudoParams);

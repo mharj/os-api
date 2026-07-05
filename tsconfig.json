@@ -2,6 +2,7 @@
 	"files": [],
 	"references": [
 		{ "path": "./packages/os-api-shared" },
-		{ "path": "./packages/os-api-linux-utils" }
+		{ "path": "./packages/os-api-linux-utils" },
+		{ "path": "./packages/os-api-linux-db" }
 	]
 }

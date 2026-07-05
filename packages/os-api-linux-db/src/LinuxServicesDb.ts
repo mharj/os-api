@@ -1,5 +1,5 @@
-import {AbstractMakeDbDatabase, type AbstractMakeDbDatabaseProps, type MakeDbKey} from './AbstractMakeDbDatabase';
 import {type DistinctKey, parseServicesLine, type RawDataMap, type ServicesEntry, servicesLineBuilder, validateLinuxServicesEntry} from '@avanio/os-api-shared';
+import {AbstractMakeDbDatabase, type AbstractMakeDbDatabaseProps, type MakeDbKey} from './AbstractMakeDbDatabase';
 
 const initialProps = {
 	backup: false,
@@ -12,7 +12,7 @@ const initialProps = {
 export class LinuxServicesDb extends AbstractMakeDbDatabase<AbstractMakeDbDatabaseProps, ServicesEntry> {
 	public readonly name = 'LinuxServicesDb';
 
-	constructor(props: Partial<AbstractMakeDbDatabaseProps> = {}) {
+	public constructor(props: Partial<AbstractMakeDbDatabaseProps> = {}) {
 		super(Object.assign({}, initialProps, props));
 	}
 

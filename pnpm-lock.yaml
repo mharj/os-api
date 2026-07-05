@@ -36,6 +36,18 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
+  packages/os-api-linux-db:
+    dependencies:
+      '@avanio/logger-like':
+        specifier: ^0.2.0
+        version: 0.2.12
+      '@avanio/os-api-linux-utils':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@avanio/os-api-shared':
+        specifier: ^0.8.0
+        version: 0.8.3(@avanio/logger-like@0.2.12)(zod@4.4.3)
+
   packages/os-api-linux-utils:
     dependencies:
       '@avanio/logger-like':
@@ -53,8 +65,20 @@ importers:
 
 packages:
 
+  '@avanio/logger-like@0.1.1':
+    resolution: {integrity: sha512-5u1ZX6kR9wgt4eYQYrgdhKL0WAsiWz2Kbinp+lPyoEs4/uFl2BhgG5X7obG2OZ2NvZL4f76X6Qm+QsT/o5BOYA==}
+
   '@avanio/logger-like@0.2.12':
     resolution: {integrity: sha512-XoIRKMBtYmva8ElpC5ccr6JkD2WBzVMV4qTcdTFPNkCAf524IET2mcm923PwfoLinDwEuty08sSEtcsoq68+Lw==}
+
+  '@avanio/os-api-linux-utils@0.4.0':
+    resolution: {integrity: sha512-lGbcaAitkA8b8MfBQphSHXql/SW9/5I7WsGCD8PrzfDGa8owhHCgbOequUNCSfFite3DtWgcFxZtZiA7+ACBgg==}
+
+  '@avanio/os-api-shared@0.8.3':
+    resolution: {integrity: sha512-rUaRLMcCDkPyoCEG4Y5WfmFzLpr6Q+xFX2NPVbnHwyGKLclM4ajEEiD9f86XI5eBFUlrPU5nyLUSCQB2ASWBpA==}
+    peerDependencies:
+      '@avanio/logger-like': ^0.1 || ^0.2
+      zod: ^3.x
 
   '@babel/generator@8.0.0':
     resolution: {integrity: sha512-NT9NrVwJsbSV6Y2FSstWa71EETOnzrjkL5/wX3D2mYHtKM+qvqB1DvR4D0Setb/gDBsHzRICifwEWMO8CnTF6g==}
@@ -1112,7 +1136,19 @@ packages:
 
 snapshots:
 
+  '@avanio/logger-like@0.1.1': {}
+
   '@avanio/logger-like@0.2.12': {}
+
+  '@avanio/os-api-linux-utils@0.4.0':
+    dependencies:
+      '@avanio/logger-like': 0.1.1
+      tslib: 2.8.1
+
+  '@avanio/os-api-shared@0.8.3(@avanio/logger-like@0.2.12)(zod@4.4.3)':
+    dependencies:
+      '@avanio/logger-like': 0.2.12
+      zod: 4.4.3
 
   '@babel/generator@8.0.0':
     dependencies:
@@ -1842,8 +1878,7 @@ snapshots:
       - oxc-resolver
       - vue-tsc
 
-  tslib@2.8.1:
-    optional: true
+  tslib@2.8.1: {}
 
   typescript@6.0.3: {}
 
