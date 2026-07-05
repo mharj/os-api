@@ -28,9 +28,9 @@ tss:!:19827::::::`;
 
 export class MockLinuxShadow extends AbstractLinuxMock<ShadowEntry> {
 	public readonly name = 'MockLinuxShadow';
-	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
+	protected _data: Map<number, string> = new Map(rawData.split('\n').map((line, index) => [index, line]));
 
-	protected isSameEntry(a: ShadowEntry | DistinctKey<ShadowEntry, number>, b: ShadowEntry | DistinctKey<ShadowEntry, number> | undefined) {
+	protected isSameEntry(a: ShadowEntry | DistinctKey<ShadowEntry, number>, b: ShadowEntry | DistinctKey<ShadowEntry, number> | undefined): boolean {
 		if (!b) {
 			return false;
 		}

@@ -1,0 +1,28 @@
+name: os-api-linux-utils CI/CD
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/os-api-linux-utils/**"
+      - ".github/workflows/os-api-linux-utils.yml"
+      - ".github/workflows/module.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/os-api-linux-utils/**"
+      - ".github/workflows/os-api-linux-utils.yml"
+      - ".github/workflows/module.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
+jobs:
+  module-flow:
+    uses: ./.github/workflows/module.yml
+    secrets: inherit
+    with:
+      package-path: packages/os-api-linux-utils

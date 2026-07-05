@@ -23,7 +23,7 @@ ff02::2 ip6-allrouters
 export class MockLinuxHosts extends AbstractLinuxMock<HostEntry> {
 	public readonly name = 'MockLinuxHosts';
 
-	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
+	protected _data: Map<number, string> = new Map(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: HostEntry): string {
 		return buildOutput(value);

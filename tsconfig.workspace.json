@@ -1,6 +1,9 @@
 {
 	"compilerOptions": {
-		"paths": {}
+		"paths": {
+			"@avanio/os-api-linux-utils": ["packages/os-api-linux-utils/src/index.ts"],
+			"@avanio/os-api-shared": ["packages/os-api-shared/src/index.ts"]
+		}
 	},
 	"extends": "./tsconfig.base.json"
 }

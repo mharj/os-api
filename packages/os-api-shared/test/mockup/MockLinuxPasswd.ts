@@ -29,7 +29,7 @@ tss:x:59:59:Account used for TPM access:/:/usr/sbin/nologin`;
 export class MockLinuxPasswd extends AbstractLinuxMock<PasswordEntry> {
 	public readonly name = 'MockLinuxPasswd';
 
-	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
+	protected _data: Map<number, string> = new Map(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: PasswordEntry): string {
 		return buildOutput(value);
@@ -39,7 +39,7 @@ export class MockLinuxPasswd extends AbstractLinuxMock<PasswordEntry> {
 		return parsePasswdLine(value, this.logger);
 	}
 
-	protected isSameEntry(a: PasswordEntry | DistinctKey<PasswordEntry, number>, b: PasswordEntry | DistinctKey<PasswordEntry, number> | undefined) {
+	protected isSameEntry(a: PasswordEntry | DistinctKey<PasswordEntry, number>, b: PasswordEntry | DistinctKey<PasswordEntry, number> | undefined): boolean {
 		if (!b) {
 			return false;
 		}

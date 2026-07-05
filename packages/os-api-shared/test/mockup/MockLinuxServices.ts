@@ -82,7 +82,7 @@ whois++         63/udp          whoispp`;
 
 export class MockLinuxServices extends AbstractLinuxMock<ServicesEntry> {
 	public readonly name = 'MockLinuxServices';
-	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
+	protected _data: Map<number, string> = new Map(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: ServicesEntry): string {
 		return buildOutput(value);

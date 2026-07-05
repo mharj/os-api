@@ -13,7 +13,7 @@ export abstract class AbstractLinuxMock<Entry extends BaseEntry> extends Abstrac
 		super({logger});
 	}
 
-	public setState(state: ServiceStatusObject) {
+	public setState(state: ServiceStatusObject): void {
 		this._state = state;
 	}
 
@@ -35,7 +35,7 @@ export abstract class AbstractLinuxMock<Entry extends BaseEntry> extends Abstrac
 		return entryList.some((entry) => this.isSameEntry(entry, value));
 	}
 
-	protected async verifyDelete(value: DistinctKey<Entry, number>) {
+	protected async verifyDelete(value: DistinctKey<Entry, number>): Promise<boolean> {
 		const entryList = Array.from((await this.list()).values());
 		return entryList.some((entry) => !this.isSameEntry(entry, value));
 	}

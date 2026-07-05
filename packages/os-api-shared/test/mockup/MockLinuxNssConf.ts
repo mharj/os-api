@@ -32,7 +32,7 @@ netgroup:       nis`;
 
 export class MockLinuxNssConf extends AbstractLinuxMock<NssEntry> {
 	public readonly name = 'MockLinuxNssConf';
-	protected _data = new Map<number, string>(rawData.split('\n').map((line, index) => [index, line]));
+	protected _data: Map<number, string> = new Map(rawData.split('\n').map((line, index) => [index, line]));
 
 	protected toOutput(value: NssEntry): string {
 		return buildOutput(value);
