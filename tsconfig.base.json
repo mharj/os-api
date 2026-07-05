@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "erasableSyntaxOnly": true,
+    "esModuleInterop": true,
+    "types": ["node"],
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "isolatedDeclarations": true,
+    "lib": ["esnext", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "noUncheckedSideEffectImports": true
+  }
+}
