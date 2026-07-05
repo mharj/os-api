@@ -36,10 +36,10 @@ importers:
   packages/os-api-shared:
     dependencies:
       '@avanio/logger-like':
-        specifier: ^0.1 || ^0.2
+        specifier: '>= 0.1.0'
         version: 0.2.12
       zod:
-        specifier: ^3.x
+        specifier: '>= 3.0.0'
         version: 3.25.76
 
 packages:
