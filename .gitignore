@@ -108,3 +108,5 @@ test/hosts
 # ignore all subdirectories dist and node_modules
 */dist/
 */node_modules/
+# pnpm store
+.pnpm-store
